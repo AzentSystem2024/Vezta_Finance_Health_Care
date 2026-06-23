@@ -1,0 +1,27 @@
+.date-range-container {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  padding: 10px;
+}
+
+.date-row {
+  display: flex;
+  gap: 12px;
+  justify-content: space-between;
+}
+
+.button-row {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 6px;
+}
+
+::ng-deep .popup-title-text {
+  white-space: normal !important;
+  overflow: visible !important;
+  text-overflow: unset !important;
+  font-size: 20px;
+  font-weight: 600;
+  word-break: break-word;
+}

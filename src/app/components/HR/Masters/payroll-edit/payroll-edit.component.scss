@@ -1,0 +1,101 @@
+@use "../../../../../variables.scss" as *;
+@use "sass:math";
+
+::ng-deep .salary-grid-wrapper .dx-datagrid .dx-toolbar {
+  height: auto !important;
+  min-height: 100px; /* increase */
+  align-items: flex-start;
+}
+.ot-hours-container {
+  margin-top: 50px; /* adjust as needed */
+}
+::ng-deep
+  .salary-grid-wrapper
+  .dx-datagrid
+  .dx-toolbar
+  .dx-toolbar-items-container {
+  height: 100%;
+}
+::ng-deep .stacked-toolbar-group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px; /* space between the two date pickers */
+  // margin-bottom: 50px;
+}
+
+.form-popup-buttons-container {
+  display: flex;
+  justify-content: flex-end; /* Moves buttons to the right */
+  padding: 10px; /* Optional: Adds some spacing */
+}
+
+.popup-footer {
+  display: flex;
+  gap: 10px; /* Space between buttons */
+}
+.custom-text-box {
+  width: 300px !important; /* Adjust the width as needed */
+}
+
+.grand-total-row {
+  display: flex;
+  justify-content: flex-start;
+  padding: 8px var(--content-padding);
+  font-weight: bold;
+  // background-color: #f5f5f5;
+
+  // Optional: Match the grid width
+  width: 100%;
+}
+
+.column-spacer {
+  flex: 0 0 calc(100% * 2 / 5); // Adjust this to shift under Gross (2 of 5 columns here)
+}
+
+.total-cell {
+  flex: 0 0 calc(100% / 5); // Align under Gross column width
+  text-align: right;
+}
+.grand-total-value {
+  margin-top: 16px; // You can adjust this value as needed
+  width: 200px; // Optional: to align it visually under "Gross" column
+}
+.form-row {
+  display: flex;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.form-label {
+  width: 120px; /* Adjust as needed */
+  margin-right: 10px;
+  font-weight: 500;
+}
+.right-align {
+  text-align: right;
+}
+
+.basic-salary-container {
+  margin-top: 45px; /* Adjust until it aligns visually */
+}
+
+::ng-deep .blue-outline-btn.dx-button .dx-icon {
+  color: #ffa500 !important; /* blue icon */
+
+  border-radius: 8px;
+}
+::ng-deep .blue-outline-btn.dx-button {
+  border: none !important; /* blue border */
+  color: #ffa500 !important;
+  background-color: #fff2d9 !important; /* blue text */
+}
+.blue-outline-btn.dx-button .dx-icon :hover {
+  color: #ffffff !important; /* blue icon */
+
+  border-radius: 8px;
+}
+::ng-deep .blue-outline-btn.dx-button:hover {
+  border: none !important; /* blue border */
+  color: #ffffff !important;
+  background-color: #ffa500 !important; /* blue text */
+}

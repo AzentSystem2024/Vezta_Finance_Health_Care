@@ -1,0 +1,174 @@
+<dx-form class="plain-styled-form">
+  <dxi-item itemType="group">
+    <dxo-col-count-by-screen
+      [xs]="1"
+      [sm]="1"
+      [md]="1"
+      [lg]="1"
+    ></dxo-col-count-by-screen>
+
+    <!-- CODE -->
+    <dxi-item>
+      <div *dxTemplate>
+        <dx-text-box
+          label="Code"
+          [(value)]="formVatclassData.CODE"
+          labelMode="floating"
+          (keypress)="keyPressCode($event)"
+        >
+        </dx-text-box>
+      </div>
+    </dxi-item>
+
+    <!-- GST NAME -->
+    <dxi-item>
+      <div *dxTemplate>
+        <dx-text-box
+          label="GST Name"
+          [(value)]="formVatclassData.VAT_NAME"
+          labelMode="floating"
+        >
+        </dx-text-box>
+      </div>
+    </dxi-item>
+
+    <!-- GST PERCENT -->
+    <dxi-item>
+      <div *dxTemplate>
+        <dx-number-box
+          label="GST %"
+          [(value)]="formVatclassData.GST_PERC"
+          labelMode="floating"
+          [showSpinButtons]="true"
+          (onValueChanged)="onGstChange($event)"
+        >
+        </dx-number-box>
+      </div>
+    </dxi-item>
+
+    <!-- HEADER -->
+    <dxi-item>
+      <div *dxTemplate>
+        <div class="gst-header">
+          <div></div>
+          <div>%</div>
+          <div>Input Ledger</div>
+          <div>Output Ledger</div>
+        </div>
+      </div>
+    </dxi-item>
+
+    <!-- CGST -->
+    <dxi-item>
+      <div *dxTemplate>
+        <div class="gst-row">
+          <div class="gst-label">CGST</div>
+
+          <dx-number-box
+            [(value)]="formVatclassData.CGST_PERC"
+            [readOnly]="true"
+          ></dx-number-box>
+
+          <dx-select-box
+            [dataSource]="ledgerList"
+            displayExpr="HEAD_NAME"
+            valueExpr="HEAD_ID"
+            [(value)]="formVatclassData.CGST_INPUT_HEAD_ID"
+            placeholder="Input Ledger"
+            [searchEnabled]="true"
+          ></dx-select-box>
+
+          <dx-select-box
+            [dataSource]="ledgerList"
+            displayExpr="HEAD_NAME"
+            valueExpr="HEAD_ID"
+            [(value)]="formVatclassData.CGST_OUTPUT_HEAD_ID"
+            placeholder="Output Ledger"
+            [searchEnabled]="true"
+          ></dx-select-box>
+        </div>
+      </div>
+    </dxi-item>
+
+    <!-- SGST -->
+    <dxi-item>
+      <div *dxTemplate>
+        <div class="gst-row">
+          <div class="gst-label">SGST</div>
+
+          <dx-number-box
+            [(value)]="formVatclassData.SGST_PERC"
+            [readOnly]="true"
+          ></dx-number-box>
+
+          <dx-select-box
+            [dataSource]="ledgerList"
+            displayExpr="HEAD_NAME"
+            valueExpr="HEAD_ID"
+            [(value)]="formVatclassData.SGST_INPUT_HEAD_ID"
+            placeholder="Input Ledger"
+            [searchEnabled]="true"
+          ></dx-select-box>
+
+          <dx-select-box
+            [dataSource]="ledgerList"
+            displayExpr="HEAD_NAME"
+            valueExpr="HEAD_ID"
+            [(value)]="formVatclassData.SGST_OUTPUT_HEAD_ID"
+            placeholder="Output Ledger"
+            [searchEnabled]="true"
+          ></dx-select-box>
+        </div>
+      </div>
+    </dxi-item>
+
+    <!-- IGST -->
+    <dxi-item>
+      <div *dxTemplate>
+        <div class="gst-row">
+          <div class="gst-label">IGST</div>
+
+          <dx-number-box
+            [(value)]="formVatclassData.IGST_PERC"
+            [readOnly]="true"
+          ></dx-number-box>
+
+          <dx-select-box
+            [dataSource]="ledgerList"
+            displayExpr="HEAD_NAME"
+            valueExpr="HEAD_ID"
+            [(value)]="formVatclassData.IGST_INPUT_HEAD_ID"
+            placeholder="Input Ledger"
+            [searchEnabled]="true"
+          ></dx-select-box>
+
+          <dx-select-box
+            [dataSource]="ledgerList"
+            displayExpr="HEAD_NAME"
+            valueExpr="HEAD_ID"
+            [(value)]="formVatclassData.IGST_OUTPUT_HEAD_ID"
+            placeholder="Output Ledger"
+            [searchEnabled]="true"
+          ></dx-select-box>
+        </div>
+      </div>
+    </dxi-item>
+  </dxi-item>
+</dx-form>
+
+<!-- FOOTER -->
+<div class="popup-footer">
+  <dx-button
+    text="Cancel"
+    stylingMode="outlined"
+    type="normal"
+    (onClick)="closePopup()"
+  ></dx-button>
+
+  <dx-button
+    text="Save"
+    stylingMode="contained"
+    type="default"
+    (onClick)="UpdateData()"
+  ></dx-button>
+</div>

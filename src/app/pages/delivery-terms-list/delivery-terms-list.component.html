@@ -1,0 +1,178 @@
+<div class="view-wrapper list-page">
+  <dx-data-grid
+    class="grid theme-dependent"
+    [dataSource]="delivery_terms"
+    [rowAlternationEnabled]="true"
+    rowAlternationInterval="2"
+    (onRowRemoving)="onRowRemoving($event)"
+    (onRowUpdating)="onRowUpdating($event)"
+    [showBorders]="true"
+      [allowColumnReordering]="true"
+      [allowColumnResizing]="true"
+      (onExporting)="onExporting($event)"
+      [showBorders]="true"
+      [columnAutoWidth]="false"
+      [wordWrapEnabled]="false"
+      [rowAlternationEnabled]="true"
+      [allowColumnReordering]="true"
+      [showColumnHeaders]="true"
+      [columnAutoWidth]="true"
+      [allowColumnResizing]="true"
+      [columnResizingMode]="'nextColumn'"
+      [headerFilter]="{ visible: false }"
+      [scrolling]="{ mode: 'virtual' }"
+      rowAlternationInterval="2"
+      [selection]="{ mode: 'single' }"
+      focusStateEnabled="false"
+      [height]="'82vh'"
+  >
+     <dxo-filter-row [visible]="isFilterRowVisible"></dxo-filter-row>
+
+    <dxo-header-filter [visible]="true">
+      <dxo-search [enabled]="true"></dxo-search>
+    </dxo-header-filter>
+
+<dxo-export
+      [enabled]="true"
+      [formats]="['xlsx']"
+    >
+    </dxo-export>
+    
+     <dxo-paging [pageSize]="10"></dxo-paging>
+    <dxo-pager
+      [visible]="true"
+      [allowedPageSizes]="allowedPageSizes"
+      [displayMode]="displayMode"
+      [showPageSizeSelector]="showPageSizeSelector"
+      [showInfo]="true"
+      [showNavigationButtons]="true"
+    ></dxo-pager>
+  
+    <dxo-editing
+      mode="popup"
+      [allowUpdating]="canEdit"
+      [allowDeleting]="canDelete"
+      [allowAdding]="canAdd"
+    >
+      <dxo-popup
+        title="Edit Delivery Terms"
+        [showTitle]="true"
+        [width]="500"
+        [height]="250"
+      ></dxo-popup>
+      <dxo-form [colCount]="1">
+      <dxi-item
+        dataField="CODE"
+        editorType="dxTextBox"
+        [editorOptions]="{
+          label: 'Code',
+          labelMode: 'floating'
+        }"
+      >
+
+      <dxo-label [visible]="false"></dxo-label>
+      </dxi-item>
+      <dxi-item
+        dataField="DESCRIPTION"
+        editorType="dxTextBox"
+        [editorOptions]="{
+          label: 'Description',
+          labelMode: 'floating'
+        }"
+      >
+      <dxo-label [visible]="false"></dxo-label>
+      </dxi-item>
+    </dxo-form>
+    </dxo-editing>
+
+    <dxo-toolbar>
+       <dxi-item location="before" locateInMenu="never">
+        <div
+          class="grid-header"
+          style="
+            font-weight: 600;
+            font-size: 20px;
+            margin-left: 12px;
+            padding: -3px;
+            margin-right: 3px;
+          "
+        >
+          Delivery Terms
+        </div>
+      </dxi-item>
+
+      <dxi-item
+        location="after"
+        widget="dxButton"
+        [options]="searchButtonOptions"
+      ></dxi-item>
+
+       <!-- Refresh -->
+      <dxi-item
+        location="after"
+        widget="dxButton"
+        [options]="refreshButtonOptions"
+      ></dxi-item>
+
+      <!-- Divider -->
+      <dxi-item location="after">
+        <div class="toolbar-divider"></div>
+      </dxi-item>
+
+      <!-- Export (built-in, kept) -->
+      <dxi-item
+        name="exportButton"
+        location="after"
+        cssClass="toolbar-icon-btn export-btn"
+      ></dxi-item>
+   
+        <dxi-item
+        location="after"
+        widget="dxButton"
+        [options]="addButtonOptions"
+        [visible]="canAdd"
+      ></dxi-item>
+     
+    </dxo-toolbar>
+    <dxi-column dataField="CODE" caption="Code">
+      <dxi-validation-rule
+        type="required"
+        message="Code is required"
+      ></dxi-validation-rule>
+
+      <dxi-validation-rule
+        type="pattern"
+        [pattern]="'^[a-zA-Z0-9]+$'"
+        message="Only alphanumeric allowed"
+      ></dxi-validation-rule>
+
+      <!--  Duplicate validation -->
+      <dxi-validation-rule
+        type="custom"
+        [validationCallback]="validateGridDeliveryCode"
+        message="Code already exists"
+      ></dxi-validation-rule>
+    </dxi-column>
+    <dxi-column dataField="DESCRIPTION" caption="Description">
+      <dxi-validation-rule
+        type="required"
+        message="Description is required"
+    ></dxi-validation-rule>
+
+    <!--  Duplicate validation -->
+      <dxi-validation-rule
+        type="custom"
+        [validationCallback]="validateGridDeliveryDescription"
+        message="Description already exists"
+      ></dxi-validation-rule>
+    </dxi-column>
+  </dx-data-grid>
+  <form-popup
+    [(visible)]="isAddDeliveryTermsPopupOpened"
+    (save)="onClickSaveDeliveryTerms()"
+    titleText="New Delivery Terms"
+    [showApprove]="false"
+  >
+    <app-delivery-terms-form></app-delivery-terms-form>
+  </form-popup>
+</div>

@@ -1,0 +1,313 @@
+<div class="view-wrapper list-page">
+  <div class="grid-container">
+    <dx-data-grid
+      #dataGrid
+      noDataText="No data available"
+      [width]="'100%'"
+      [height]="'82vh'"
+      [loadPanel]="{
+        enabled: true,
+        text: 'Loading...',
+        showIndicator: true,
+        showPane: true,
+      }"
+      class="grid theme-dependent"
+      [dataSource]="productionList"
+      [showBorders]="true"
+      [showRowLines]="true"
+      [showColumnLines]="true"
+      [wordWrapEnabled]="false"
+      [rowAlternationEnabled]="true"
+      [allowColumnReordering]="true"
+      [showColumnHeaders]="true"
+      [columnAutoWidth]="true"
+      [allowColumnResizing]="true"
+      [columnResizingMode]="'nextColumn'"
+      [filterRow]="{ visible: false }"
+      [headerFilter]="{ visible: false }"
+      [scrolling]="{ mode: 'virtual' }"
+      rowAlternationInterval="2"
+      [selection]="{ mode: 'single' }"
+      focusStateEnabled="false"
+      (onEditingStart)="onEditProduction($event)"
+      (onCellPrepared)="onCellPrepared($event)"
+      (onRowRemoved)="delete_Data($event)"
+    >
+      <dxo-editing
+        mode="popup"
+        [allowUpdating]="true"
+        [allowDeleting]="canDelete"
+        [texts]="{
+          editRow: 'View',
+        }"
+      ></dxo-editing>
+      <dxo-export
+        [enabled]="true"
+        [allowExportSelectedData]="false"
+        [formats]="['xlsx']"
+      >
+      </dxo-export>
+      <dxo-paging [pageSize]="10"></dxo-paging>
+      <dxo-pager
+        [visible]="true"
+        [allowedPageSizes]="allowedPageSizes"
+        [displayMode]="displayMode"
+        [showPageSizeSelector]="showPageSizeSelector"
+        [showInfo]="true"
+        [showNavigationButtons]="true"
+      ></dxo-pager>
+      <dxo-load-panel [showPane]="false"></dxo-load-panel>
+      <!-- <dxo-scrolling mode="standard"></dxo-scrolling> -->
+      <!-- <dxo-filter-row
+        [visible]="isFilterRowVisible"
+        [applyFilter]="auto"
+      ></dxo-filter-row>
+      <dxo-header-filter [visible]="isFilterOpened">
+        <dxo-search [enabled]="true"></dxo-search>
+      </dxo-header-filter>
+      <dxo-filter-panel [visible]="isFilterOpened"></dxo-filter-panel>
+      <dxo-filter-builder [allowHierarchicalFields]="true">
+      </dxo-filter-builder> -->
+
+      <dxo-toolbar>
+        <dxi-item location="before">
+          <!-- <div class="grid-header">Article Production</div> -->
+          <div class="grid-header">
+            {{ productionHeaderTitle }}
+          </div>
+        </dxi-item>
+
+        <dxi-item
+          location="before"
+          locateInMenu="auto"
+          template="productionTypeTemplate"
+        ></dxi-item>
+
+        <dxi-item location="after" template="dateFilterTemplate"></dxi-item>
+        <dxi-item
+          location="after"
+          locateInMenu="auto"
+          widget="dxButton"
+          [options]="searchButtonOptions"
+        ></dxi-item>
+
+        <dxi-item
+          location="after"
+          locateInMenu="auto"
+          widget="dxButton"
+          [options]="refreshButtonOptions"
+        ></dxi-item>
+        <dxi-item location="after">
+          <div class="toolbar-divider"></div>
+        </dxi-item>
+        <dxi-item
+          name="exportButton"
+          location="after"
+          cssClass="export-btn"
+        ></dxi-item>
+        <!-- Divider -->
+
+        <!-- <dxi-item
+          *ngIf="canAdd"
+          location="after"
+          locateInMenu="auto"
+          widget="dxButton"
+          [options]="addButtonOptions"
+        ></dxi-item> -->
+      </dxo-toolbar>
+
+      <div *dxTemplate="let data of 'productionTypeTemplate'">
+        <dx-select-box
+          [dataSource]="productionTypes"
+          displayExpr="name"
+          valueExpr="id"
+          [(value)]="selectedProductionType"
+          width="200"
+          (onValueChanged)="onProductionTypeChanged($event)"
+        >
+        </dx-select-box>
+      </div>
+
+      <div *dxTemplate="let data of 'dateFilterTemplate'">
+        <dx-select-box
+          [dataSource]="dateRanges"
+          [displayExpr]="dateDisplayExpr"
+          valueExpr="value"
+          [(value)]="selectedDateRange"
+          (onValueChanged)="onDateRangeChanged($event.value)"
+          (onOpened)="attachItemClickHandler($event)"
+          width="220"
+        >
+          <!--  THIS FIXES THE DROPDOWN -->
+          <div *dxTemplate="let item of 'item'">
+            {{ item.value === "custom" ? "Custom" : item.label }}
+          </div>
+        </dx-select-box>
+      </div>
+
+      <dxi-column dataField="PROD_NO" caption="Document No"></dxi-column>
+
+      <dxi-column
+        dataField="PROD_DATE"
+        caption="Date"
+        dataType="date"
+        [allowEditing]="false"
+        format="dd-MM-yyyy"
+      ></dxi-column>
+      <dxi-column dataField="DESCRIPTION" caption="Item Name"></dxi-column>
+      <dxi-column
+        dataField="PRODUCED_QTY"
+        caption="Produced Qty"
+        dataType="number"
+      ></dxi-column>
+
+      <dxi-column
+        dataField="STATUS"
+        [cellTemplate]="statusCellRender"
+        caption="Status"
+      ></dxi-column>
+      <dxo-summary>
+        <dxi-total-item
+          column="PRODUCED_QTY"
+          summaryType="sum"
+          displayFormat="Total: {0}"
+          alignment="right"
+        >
+        </dxi-total-item>
+      </dxo-summary>
+      <!-- <dxi-column
+        dataField="TOTAL_COST"
+        caption="
+          Total Cost
+        "
+        dataType="number"
+        [format]="{ type: 'fixedPoint', precision: 2 }"
+      ></dxi-column> -->
+    </dx-data-grid>
+  </div>
+</div>
+
+<dx-popup
+  [(visible)]="isAddPopupVisible"
+  [width]="1200"
+  [height]="'100vh'"
+  title="Article Production"
+  (onHiding)="onPopupHiding()"
+  [showApprove]="false"
+>
+  <app-production-jv-add
+    [productionType]="selectedProductionType"
+    (formClosed)="handleClose()"
+  ></app-production-jv-add>
+</dx-popup>
+
+<dx-popup
+  [(visible)]="isEditPopupVisible"
+  [width]="1200"
+  [height]="'100vh'"
+  title="Article Production"
+  (onHiding)="onPopupHiding()"
+>
+  <ng-container *ngIf="isEditPopupVisible">
+    <app-production-jv-add
+      [isEditing]="true"
+      [EditingResponseData]="selectedProduction"
+      [productionType]="selectedProductionType"
+      (formClosed)="handleClose()"
+    ></app-production-jv-add>
+  </ng-container>
+</dx-popup>
+
+<dx-popup
+  [(visible)]="isBoxAddPopupVisible"
+  [width]="1200"
+  [height]="'100vh'"
+  title="Box Production"
+  (onHiding)="onPopupHiding()"
+  [showApprove]="false"
+>
+  <app-boxproduction-jv-add
+    [productionType]="selectedProductionType"
+    (formClosed)="handleClose()"
+  ></app-boxproduction-jv-add>
+</dx-popup>
+
+<dx-popup
+  [(visible)]="isEditBoxPopupVisible"
+  [width]="1200"
+  [height]="'100vh'"
+  title="Box Production"
+  (onHiding)="onPopupHiding()"
+>
+  <ng-container *ngIf="isEditBoxPopupVisible">
+    <app-boxproduction-jv-add
+      [isEditing]="true"
+      [EditingResponseData]="selectedProduction"
+      [productionType]="selectedProductionType"
+      (formClosed)="handleClose()"
+    ></app-boxproduction-jv-add>
+  </ng-container>
+</dx-popup>
+
+<dx-popup
+  [(visible)]="isViewProduction"
+  [width]="'90vw'"
+  [height]="'100vh'"
+  title="View Production"
+  (onHiding)="handleClose()"
+>
+  <ng-container *ngIf="isViewProduction">
+    <app-production-jv-view
+      [isEditing]="true"
+      [EditingResponseData]="selectedProduction"
+      [productionType]="selectedProductionType"
+      [isReadOnlyMode]="isReadOnlyInvoice"
+      (popupClosed)="handleClose()"
+    ></app-production-jv-view>
+  </ng-container>
+</dx-popup>
+
+<app-custom-date-popup
+  [(visible)]="showCustomDatePopup"
+  [startDate]="customStartDate"
+  [endDate]="customEndDate"
+  (applyDates)="onCustomDateApplied($event)"
+>
+</app-custom-date-popup>
+
+<!-- <dx-popup
+  [(visible)]="showCustomDatePopup"
+  [showTitle]="true"
+  title="Select Dates"
+  [width]="350"
+  [height]="170"
+  [dragEnabled]="false"
+>
+  <div>
+    <div class="date-range-container">
+      <dx-date-box
+        [(value)]="customStartDate"
+        type="date"
+        width="300"
+        placeholder="From Date"
+      >
+      </dx-date-box>
+
+      <dx-date-box
+        [(value)]="customEndDate"
+        type="date"
+        placeholder="To Date"
+        width="300"
+      >
+      </dx-date-box>
+    </div>
+
+    <div class="button-container">
+      <dx-button
+        text="Apply"
+        type="default"
+        (onClick)="applyCustomDateFilter()"
+      ></dx-button>
+    </div>
+  </div>
+</dx-popup> -->

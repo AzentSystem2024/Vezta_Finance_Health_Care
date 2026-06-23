@@ -1,0 +1,119 @@
+<dx-form class="plain-styled-form">
+  <dxi-item itemType="group">
+    <dxo-col-count-by-screen
+      [xs]="1"
+      [sm]="1"
+      [md]="1"
+      [lg]="1"
+    ></dxo-col-count-by-screen>
+    <dxi-item>
+      <div *dxTemplate>
+        <dx-text-box
+          label="Code"
+          [(value)]="newVatclass.CODE"
+          labelMode="floating"
+          (keypress)="keyPressCode($event)"
+        >
+          <dx-validator>
+            <dxi-validation-rule
+              type="required"
+              message="Code is required"
+            ></dxi-validation-rule>
+
+            <dxi-validation-rule
+              type="pattern"
+              [pattern]="'^[a-zA-Z0-9]+$'"
+              message="Code should be alphanumeric only"
+            ></dxi-validation-rule>
+
+            <dxi-validation-rule
+                type="custom"
+                [validationCallback]="validateVatClassCode"
+                message="Code already exists"
+            ></dxi-validation-rule>
+
+          </dx-validator>
+        </dx-text-box>
+      </div>
+    </dxi-item>
+
+    <dxi-item>
+      <div *dxTemplate>
+        <dx-text-box
+          label="VAT Name"
+          [(value)]="newVatclass.VAT_NAME"
+          labelMode="floating"
+        >
+        <dx-validator>
+            <dxi-validation-rule
+              type="required"
+              message="VAT Name is required"
+            ></dxi-validation-rule>
+        </dx-validator>
+        </dx-text-box>
+      </div>
+    </dxi-item>
+
+    <dxi-item>
+      <div *dxTemplate>
+        <dx-number-box
+          label="VAT Percentage"
+          [(value)]="newVatclass.VAT_PERC"
+          labelMode="floating"
+          [min]="0"
+          [max]="100"
+          [showSpinButtons]="true"
+        >
+          <dx-validator>
+            <dxi-validation-rule
+              type="required"
+              message="VAT Percentage is required"
+            ></dxi-validation-rule>
+          </dx-validator>
+        </dx-number-box>
+      </div>
+    </dxi-item>
+
+    <dxi-item>
+      <div class="mt-2" *dxTemplate>
+        <dx-select-box
+          [dataSource]="ledgerList"
+          displayExpr="HEAD_NAME"
+          valueExpr="HEAD_ID"
+          [(value)]="newVatclass.IGST_INPUT_HEAD_ID"
+          label="Input Ledger"
+          labelMode="floating"
+          [searchEnabled]="true"
+        >
+          <dx-validator>
+            <dxi-validation-rule
+              type="required"
+              message="vat Input Ledger is required"
+            ></dxi-validation-rule>
+          </dx-validator>
+        </dx-select-box>
+      </div>
+    </dxi-item>
+
+    <dxi-item>
+      <div class="mt-2" *dxTemplate>
+        <dx-select-box
+          [dataSource]="ledgerList"
+          displayExpr="HEAD_NAME"
+          valueExpr="HEAD_ID"
+          [(value)]="newVatclass.IGST_OUTPUT_HEAD_ID"
+          label="Output Ledger"
+          labelMode="floating"
+          [searchEnabled]="true"
+        >
+          <dx-validator>
+            <dxi-validation-rule
+              type="required"
+              message="vat Output Ledger is required"
+            ></dxi-validation-rule>
+          </dx-validator>
+        </dx-select-box>
+      </div>
+    </dxi-item>
+  </dxi-item>
+</dx-form>

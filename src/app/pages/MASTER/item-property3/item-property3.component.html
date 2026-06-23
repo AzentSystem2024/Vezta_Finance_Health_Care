@@ -1,0 +1,100 @@
+<div class="view-wrapper list-page">
+  <dx-data-grid
+    class="grid theme-dependent"
+    [dataSource]="ItemProperty3DataSource"
+    [rowAlternationEnabled]="true"
+    rowAlternationInterval="2"
+    [showBorders]="true"
+    (onRowRemoving)="onRowRemoving($event)"
+    [showColumnLines]="true"
+    [width]="'100%'"
+    [height]="'82vh'"
+    [scrolling]="{ mode: 'virtual' }"
+    (onEditingStart)="OnEditingStartItem($event)"
+  >
+    <dxo-paging [pageSize]="10"></dxo-paging>
+    <dxo-pager
+      [visible]="true"
+      [allowedPageSizes]="allowedPageSizes"
+      [displayMode]="displayMode"
+      [showPageSizeSelector]="showPageSizeSelector"
+      [showInfo]="true"
+      [showNavigationButtons]="true"
+    ></dxo-pager>
+    <dxo-editing mode="popup" [allowUpdating]="canEdit" [allowDeleting]="canDelete">
+      <dxo-popup
+        title="Edit {{ itemlabel }}"
+        [showTitle]="true"
+        [width]="450"
+        [height]="300"
+      ></dxo-popup>
+      <dxo-form [colCount]="1"> </dxo-form>
+    </dxo-editing>
+
+    <dxo-filter-row [visible]="isFilterRowVisible"></dxo-filter-row>
+
+    <dxo-toolbar>
+      <dxi-item location="before">
+        <div class="grid-header">{{ ITEM_PROPERTY3 }}</div>
+      </dxi-item>
+
+      <dxi-item
+        location="after"
+        locateInMenu="auto"
+        showText="inMenu"
+        widget="dxButton"
+        [options]="searchButtonOptions"
+      ></dxi-item>
+      <dxi-item
+        location="after"
+        widget="dxButton"
+        [options]="refreshButtonOptions"
+      ></dxi-item>
+      <!-- Divider -->
+      <dxi-item location="after">
+        <div class="toolbar-divider"></div>
+      </dxi-item>
+      <dxi-item
+        location="after"
+        widget="dxButton"
+        [options]="addButtonOptions"
+        [visible]="canAdd"
+      ></dxi-item>
+    </dxo-toolbar>
+
+    <dxi-column dataField="CODE" caption="Code">
+      <dxi-validation-rule type="required" message="Code is required">
+        <dxi-validation-rule type="pattern" message="Code is required">
+        </dxi-validation-rule>
+      </dxi-validation-rule>
+    </dxi-column>
+    <dxi-column dataField="DESCRIPTION" caption="Description">
+      <dxi-validation-rule type="required" message="Description is required">
+        <dxi-validation-rule type="pattern" message="Description is required">
+        </dxi-validation-rule>
+      </dxi-validation-rule>
+    </dxi-column>
+  </dx-data-grid>
+</div>
+<form-popup
+  [(visible)]="isItemProperty3PopupOpened"
+  (save)="onClickSaveItemProperty3()"
+  titleText="New Style"
+  [showApprove]="false"
+>
+  <app-item-property3-form
+    [companyId]="selected_Company_id"
+  ></app-item-property3-form>
+</form-popup>
+<dx-popup
+  [(visible)]="isEditItemProperty3PopupOpened"
+  title="Edit Style"
+  height="30vh"
+  width="35vw"
+>
+  <app-item-property3-edit
+    [selectedData]="selected_data"
+    (formClosed)="handleClose()"
+  >
+  </app-item-property3-edit>
+</dx-popup>

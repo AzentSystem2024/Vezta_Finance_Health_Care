@@ -1,0 +1,391 @@
+<div class="view-wrapper list-page">
+  <div class="grid-container">
+    <dx-data-grid
+      #dataGrid
+      noDataText=" "
+      [width]="'100%'"
+      [height]="'82vh'"
+      [loadPanel]="{
+        enabled: true,
+        text: 'Loading...',
+        showIndicator: true,
+        showPane: true,
+      }"
+      class="grid theme-dependent"
+      [dataSource]="prepaymentList"
+      [showBorders]="true"
+      [showColumnLines]="true"
+      [columnAutoWidth]="false"
+      [wordWrapEnabled]="false"
+      [rowAlternationEnabled]="true"
+      [allowColumnReordering]="true"
+      [showColumnHeaders]="true"
+      [columnAutoWidth]="true"
+      [allowColumnResizing]="true"
+      [columnResizingMode]="'nextColumn'"
+      [scrolling]="{ mode: 'virtual' }"
+      rowAlternationInterval="2"
+      [selection]="{ mode: 'single' }"
+      focusStateEnabled="false"
+      (onEditingStart)="onEditPrePayment($event)"
+      (onRowRemoving)="onDeletePrepayment($event)"
+    >
+      <dxo-editing
+        mode="popup"
+        [allowUpdating]="canEdit"
+        [allowDeleting]="canDelete"
+      ></dxo-editing>
+      <dxo-export
+        [enabled]="true"
+        [allowExportSelectedData]="false"
+        [formats]="['xlsx']"
+      >
+      </dxo-export>
+      <dxo-paging [pageSize]="10"></dxo-paging>
+      <dxo-pager
+        [visible]="true"
+        [allowedPageSizes]="allowedPageSizes"
+        [displayMode]="displayMode"
+        [showPageSizeSelector]="showPageSizeSelector"
+        [showInfo]="true"
+        [showNavigationButtons]="true"
+      ></dxo-pager>
+      <dxo-load-panel [showPane]="false"></dxo-load-panel>
+      <dxo-scrolling mode="standard"></dxo-scrolling>
+      <!-- <dxo-filter-row [visible]="showFilterRow"></dxo-filter-row> -->
+      <dxo-header-filter
+        [visible]="true"
+        [search]="{ enabled: true }"
+      ></dxo-header-filter>
+
+      <dxo-filter-builder [allowHierarchicalFields]="true">
+      </dxo-filter-builder>
+      <dxo-toolbar>
+        <dxi-item location="before">
+          <div
+            class="grid-header"
+            style="
+              font-weight: 600;
+              font-size: 20px;
+              margin-left: 12px;
+              padding: -3px;
+              margin-right: 3px;
+            "
+          >
+            Prepayment Posting
+          </div>
+        </dxi-item>
+
+        <!-- Buttons -->
+        <dxi-item location="after">
+          <div
+            class="month-selector"
+            style="display: flex; align-items: center; gap: 8px"
+          >
+            <dx-button
+              icon="chevronleft"
+              (onClick)="goToPreviousMonth()"
+            ></dx-button>
+            <span class="month-label" (click)="toggleCalendar()">
+              {{ selectedMonth | date: "MMMM yyyy" }}
+            </span>
+            <dx-button
+              icon="chevronright"
+              (onClick)="goToNextMonth()"
+            ></dx-button>
+          </div>
+          <div *ngIf="calendarVisible" class="calendar-popup">
+            <div class="calendar-header">
+              <button class="year-button" (click)="previousYear()">&lt;</button>
+
+              <span class="year-clickable" (click)="toggleYearSelector()">{{
+                selectedYear
+              }}</span>
+
+              <button class="year-button" (click)="nextYear()">&gt;</button>
+            </div>
+
+            <div
+              class="year-selector-popup"
+              *ngIf="yearSelectorVisible"
+              (click)="$event.stopPropagation()"
+            >
+              <div class="year-grid">
+                <div
+                  class="year-option"
+                  *ngFor="let year of years"
+                  (click)="selectYear(year, $event)"
+                >
+                  {{ year }}
+                </div>
+              </div>
+            </div>
+
+            <!-- <div class="calendar-body">
+                   *ngFor="let monthName of timesheetList let idx = index"
+              <div
+             
+                class="month-cell"
+                [class.selected]="
+                  idx === selectedMonth.getMonth() &&
+                  selectedYear === selectedMonth.getFullYear()
+                "
+                (click)="selectMonthByIndex(idx)"
+              >
+                {{ monthName }}
+              </div>
+            </div> -->
+          </div>
+        </dxi-item>
+        <dxi-item location="after" locateInMenu="auto"> </dxi-item>
+        <dxi-item
+          location="after"
+          locateInMenu="auto"
+          widget="dxButton"
+          [options]="searchButtonOptions"
+        ></dxi-item>
+
+        <dxi-item
+          location="after"
+          locateInMenu="auto"
+          widget="dxButton"
+          [options]="refreshButtonOptions"
+        ></dxi-item>
+        <dxi-item location="after" style="margin-top: 3px">
+          <div class="toolbar-divider"></div>
+        </dxi-item>
+        <dxi-item
+          name="exportButton"
+          location="after"
+          cssClass="export-btn"
+        ></dxi-item>
+
+        <dxi-item
+          *ngIf="canAdd"
+          location="after"
+          locateInMenu="auto"
+          widget="dxButton"
+          [options]="addButtonOptions"
+        ></dxi-item>
+      </dxo-toolbar>
+      <dxi-column
+        dataField="SNO"
+        caption="S.No"
+        [width]="100"
+        alignment="left"
+      ></dxi-column>
+
+      <dxi-column
+        dataField="DOC_NO"
+        caption="Doc.No"
+        [width]="100"
+      ></dxi-column>
+
+      <!-- Invoice No -->
+      <dxi-column
+        dataField="INVOICE_NO"
+        caption="Invoice No"
+        [width]="100"
+      ></dxi-column>
+
+      <!-- Date -->
+      <dxi-column
+        dataField="TRANS_DATE"
+        caption="Date"
+        [width]="150"
+        dataType="date"
+        [format]="'dd/MM/yyyy'"
+      ></dxi-column>
+
+      <!-- Supplier -->
+      <dxi-column dataField="SUPP_NAME" caption="Supplier"></dxi-column>
+
+      <!-- Amount -->
+      <dxi-column
+        dataField="NET_AMOUNT"
+        caption="Amount"
+        [width]="150"
+        dataType="number"
+        [format]="{ type: 'fixedPoint', precision: 2 }"
+      ></dxi-column>
+
+      <!-- Remarks -->
+      <dxi-column
+        dataField="NARRATION"
+        [width]="250"
+        caption="Remarks"
+      ></dxi-column>
+
+      <!-- <dxi-column dataField="STATUS" caption="Status"></dxi-column> -->
+      <!-- <dxi-column
+        dataField="TRANS_STATUS"
+        caption="Status"
+        cellTemplate="statusCellTemplate"
+        width="100  "
+        alignment="center"
+      >
+      </dxi-column>
+      <div *dxTemplate="let cellData of 'statusCellTemplate'">
+        <i
+          class="fas fa-flag"
+          [ngClass]="getStatusFlagClass(cellData.value)"
+          [attr.title]="cellData.value"
+          style="margin-left: 10px; cursor: default"
+        ></i>
+      </div> -->
+      <!-- <dxi-column
+        type="buttons"
+        [buttons]="allActionButtons"
+        width="100"
+        fixed="true"
+        fixedPosition="right"
+      ></dxi-column> -->
+      <!-- <dxi-column type="buttons" [buttons]="gridButtons"> </dxi-column> -->
+
+      <dxi-column
+        caption="Status"
+        dataField="TRANS_STATUS"
+        [width]="80"
+        [cellTemplate]="statusCellRender"
+        [allowHeaderFiltering]="true"
+        [headerFilter]="{
+          dataSource: getStatusFilterData,
+          encodeHtml: false,
+        }"
+      >
+      </dxi-column>
+      <!-- <dxi-column type="buttons" [buttons]="gridButtons"> </dxi-column> -->
+      <dxi-column
+        type="buttons"
+        caption="Actions"
+        [width]="140"
+        cellTemplate="actionTemplate"
+      >
+      </dxi-column>
+      <div *dxTemplate="let cellData of 'actionTemplate'">
+        <!-- Edit -->
+        <i
+          *ngIf="canEdit"
+          class="dx-icon dx-icon-edit"
+          [style.opacity]="
+            cellData.data.TRANS_STATUS === 'Verify' ||
+            cellData.data.TRANS_STATUS === 'Approved'
+              ? '0.4'
+              : '1'
+          "
+          [style.pointer-events]="
+            cellData.data.TRANS_STATUS === 'Verify' ||
+            cellData.data.TRANS_STATUS === 'Approved'
+              ? 'none'
+              : 'auto'
+          "
+          style="cursor: pointer; margin-right: 10px"
+          title="Edit"
+          (click)="onEditPrePayment({ data: cellData.data, cancel: false })"
+        ></i>
+
+        <!-- Delete -->
+        <i
+          *ngIf="canDelete"
+          class="dx-icon dx-icon-trash"
+          [style.opacity]="
+            cellData.data.TRANS_STATUS === 'Verify' ||
+            cellData.data.TRANS_STATUS === 'Approved'
+              ? '0.4'
+              : '1'
+          "
+          [style.pointer-events]="
+            cellData.data.TRANS_STATUS === 'Verify' ||
+            cellData.data.TRANS_STATUS === 'Approved'
+              ? 'none'
+              : 'auto'
+          "
+          style="cursor: pointer; margin-right: 10px"
+          title="Delete"
+          (click)="onDeletePrepayment({ data: cellData.data, cancel: false })"
+        ></i>
+
+        <!-- Verify -->
+        <span
+          *ngIf="
+            (cellData.data.TRANS_STATUS === 'Verify' && canApprove) ||
+            (cellData.data.TRANS_STATUS !== 'Verify' && canVerify)
+          "
+          style="
+            position: relative;
+            display: inline-block;
+            width: 18px;
+            height: 18px;
+            margin-left: 10px;
+            cursor: pointer;
+            vertical-align: middle;
+          "
+          [title]="
+            cellData.data.TRANS_STATUS === 'Approved'
+              ? 'Approved'
+              : cellData.data.TRANS_STATUS === 'Verify'
+                ? 'Approve'
+                : 'Verify'
+          "
+          (click)="onVerifyClick({ row: { data: cellData.data } })"
+        >
+          <!-- Blue badge -->
+          <i
+            class="fas fa-certificate"
+            [style.color]="
+              cellData.data.TRANS_STATUS === 'Approved'
+                ? '#10B981'
+                : cellData.data.TRANS_STATUS === 'Verify'
+                  ? '#0073D8'
+                  : '#FFA500'
+            "
+            style="font-size: 18px; position: absolute; top: 0; left: 0"
+          ></i>
+
+          <!-- White tick -->
+          <i
+            class="fas fa-check"
+            style="
+              color: white;
+              font-size: 7px;
+              position: absolute;
+              top: 5px;
+              left: 5px;
+              pointer-events: none;
+            "
+          ></i>
+        </span>
+      </div>
+    </dx-data-grid>
+  </div>
+</div>
+<dx-popup
+  [(visible)]="isAddPopupPrepaymentPosting"
+  [width]="'95vw'"
+  [height]="'auto'"
+  title="New Prepayment Posting"
+  (onHiding)="handleClose()"
+>
+  <app-prepayment-posting-add
+    (popupClosed)="handleClose()"
+    [canApprove]="canApprove"
+  ></app-prepayment-posting-add>
+</dx-popup>
+
+<dx-popup
+  [(visible)]="isEditPopupPrepaymentPosting"
+  [width]="'95vw'"
+  [height]="'auto'"
+  title="Edit Prepayment Posting"
+  (onHiding)="handleClose()"
+>
+  <app-prepayment-posting-edit
+    *ngIf="isEditPopupPrepaymentPosting"
+    [selecteprepaymentData]="selecte_prepayment_Data"
+    (popupClosed)="handleClose()"
+    [prepaymentpostingId]="selectedprepaymentposting"
+    [canApprove]="canApprove"
+    [status]="StatusType"
+  >
+  </app-prepayment-posting-edit>
+</dx-popup>

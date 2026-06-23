@@ -1,0 +1,127 @@
+<div class="view-wrapper list-page">
+  <div class="grid-container">
+    <dx-data-grid
+      #dataGrid
+      noDataText="No data available"
+      [width]="'100%'"
+      [height]="'82vh'"
+      [loadPanel]="{
+        enabled: true,
+        text: 'Loading...',
+        showIndicator: true,
+        showPane: true,
+      }"
+      class="grid theme-dependent"
+      [dataSource]="StoresDataSource"
+      [showBorders]="true"
+      [showColumnLines]="true"
+      [showBorders]="true"
+      [columnAutoWidth]="false"
+      [wordWrapEnabled]="false"
+      [rowAlternationEnabled]="true"
+      [allowColumnReordering]="true"
+      [showColumnHeaders]="true"
+      [columnAutoWidth]="true"
+      [allowColumnResizing]="true"
+      [columnResizingMode]="'nextColumn'"
+      [filterRow]="{ visible: false }"
+      [headerFilter]="{ visible: false }"
+      [scrolling]="{ mode: 'virtual' }"
+      rowAlternationInterval="2"
+      [selection]="{ mode: 'single' }"
+      focusStateEnabled="false"
+      (onEditingStart)="onEditStore($event)"
+      (onRowRemoving)="onRowRemoving($event)"
+      (onExporting)="onExporting($event)"
+    >
+      <dxo-editing
+        mode="popup"
+        [allowUpdating]="canEdit"
+        [allowDeleting]="canDelete"
+      ></dxo-editing>
+      <dxo-paging [pageSize]="10"></dxo-paging>
+      <dxo-pager
+        [visible]="true"
+        [allowedPageSizes]="allowedPageSizes"
+        [displayMode]="displayMode"
+        [showPageSizeSelector]="showPageSizeSelector"
+        [showInfo]="true"
+        [showNavigationButtons]="true"
+      ></dxo-pager>
+      <dxo-load-panel [showPane]="false"></dxo-load-panel>
+      <dxo-scrolling mode="virtual"></dxo-scrolling>
+      <dxo-export [enabled]="true" [formats]="['xlsx']"> </dxo-export>
+
+      <dxo-toolbar>
+        <dxi-item location="before">
+          <div class="grid-header">Store/Branch</div>
+        </dxi-item>
+        <!-- <dxi-item location="after" template="dateFilterTemplate"></dxi-item> -->
+        <dxi-item
+          location="after"
+          widget="dxButton"
+          [options]="searchButtonOptions"
+        ></dxi-item>
+
+        <!-- Refresh -->
+        <dxi-item
+          location="after"
+          widget="dxButton"
+          [options]="refreshButtonOptions"
+        ></dxi-item>
+        <!-- Divider -->
+        <dxi-item location="after">
+          <div class="toolbar-divider"></div>
+        </dxi-item>
+        <dxi-item
+          name="exportButton"
+          location="after"
+          cssClass="export-btn"
+        ></dxi-item>
+
+        <dxi-item
+          location="after"
+          widget="dxButton"
+          [options]="addButtonOptions"
+          [visible]="canAdd"
+        ></dxi-item>
+      </dxo-toolbar>
+
+      <dxi-column dataField="CODE" caption="Code"></dxi-column>
+      <dxi-column dataField="STORE_NAME" caption="Store"></dxi-column>
+      <dxi-column dataField="CITY" caption="City"></dxi-column>
+      <dxi-column dataField="STATE_NAME" caption="State"></dxi-column>
+      <dxi-column dataField="COUNTRY_NAME" caption="Country"></dxi-column>
+      <dxi-column
+        caption="Status"
+        dataField="IS_ACTIVE"
+        [width]="80"
+        [cellTemplate]="statusCellRender"
+        [allowHeaderFiltering]="true"
+        [headerFilter]="{
+          dataSource: getStatusFilterData,
+          encodeHtml: false,
+        }"
+        [fixed]="true"
+        fixedPosition="right"
+      >
+      </dxi-column>
+    </dx-data-grid>
+  </div>
+</div>
+
+<form-popup
+  [(visible)]="isAddStoresPopupOpened"
+  [width]="700"
+  [height]="'75vh'"
+  [titleText]="selectedStore ? 'Edit Store/Branch' : 'New Store/Branch'"
+  (save)="storesComponent.submitForm()"
+  [showApprove]="false"
+>
+  <app-stores-form
+    #storesComponent
+    [storeData]="selectedStore"
+    [companyId]="selected_Company_id"
+    (formSubmit)="handleFormSubmit($event)"
+  ></app-stores-form>
+</form-popup>

@@ -1,0 +1,153 @@
+<div class="view-wrapper list-page">
+  <dx-data-grid
+    class="grid theme-dependent"
+    noDataText="no data"
+    height="600"
+    [dataSource]="dataSource"
+    [showBorders]="true"
+    [allowColumnResizing]="true"
+    [allowColumnReordering]="true"
+    [rowAlternationEnabled]="true"
+    rowAlternationInterval="2"
+    (onExporting)="onExporting($event)"
+    (onRowRemoving)="onRowRemoving($event)"
+    (onEditingStart)="onEditingStart($event)"
+    [height]="'82vh'"
+    [showColumnLines]="true"
+    [scrolling]="{ mode: 'virtual' }"
+  >
+    <dxo-paging [pageSize]="100"></dxo-paging>
+    <dxo-editing
+      mode="popup"
+      [allowUpdating]="isDeleteIconVisible"
+      [allowDeleting]="isDeleteIconVisible"
+      [allowUpdating]="canEdit"
+      [allowDeleting]="canDelete"
+      [allowAdding]="true"
+    >
+    </dxo-editing>
+    <dxo-pager
+      [visible]="true"
+      [allowedPageSizes]="allowedPageSizes"
+      [displayMode]="displayMode"
+      [showPageSizeSelector]="showPageSizeSelector"
+      [showInfo]="showInfo"
+      [showNavigationButtons]="showNavButtons"
+    >
+    </dxo-pager>
+    <dxo-load-panel [showPane]="false"></dxo-load-panel>
+    <dxo-scrolling mode="virtual"></dxo-scrolling>
+    <dxo-sorting mode="multiple"></dxo-sorting>
+    <dxo-filter-row [visible]="isFilterRowVisible"></dxo-filter-row>
+    <dxo-column-chooser [enabled]="true" [height]="400"></dxo-column-chooser>
+    <dxo-search-panel [visible]="true" placeholder=" Search"></dxo-search-panel>
+    <dxo-header-filter [visible]="true">
+      <dxo-search [enabled]="true"></dxo-search>
+    </dxo-header-filter>
+    <dxo-export
+      [enabled]="true"
+      [allowExportSelectedData]="false"
+      [formats]="['xlsx']"
+    >
+    </dxo-export>
+
+    <dxo-toolbar>
+      <dxi-item location="before">
+        <div class="grid-header">User Role</div>
+      </dxi-item>
+
+      <dxi-item
+        location="after"
+        widget="dxButton"
+        [options]="{
+          icon: 'search',
+          hint: isFilterRowVisible ? 'Hide Filter Row' : 'Show Filter Row',
+          onClick: toggleFilterRow,
+          elementAttr: { class: 'toolbar-icon-btn' },
+        }"
+      ></dxi-item>
+
+      <dxi-item
+        location="after"
+        widget="dxButton"
+        [options]="refreshButtonOptions"
+      ></dxi-item>
+
+      <!-- Export (built-in, kept) -->
+      <dxi-item location="after">
+        <div class="toolbar-divider"></div>
+      </dxi-item>
+
+      <dxi-item
+        name="exportButton"
+        location="after"
+        cssClass="toolbar-icon-btn export-btn"
+      ></dxi-item>
+      <!-- Search -->
+
+      <!-- Divider -->
+
+      <!-- Add -->
+      <dxi-item
+        location="after"
+        widget="dxButton"
+        [visible]="canAdd"
+        [options]="addButtonOptions"
+      ></dxi-item>
+    </dxo-toolbar>
+
+    <dxi-column
+      caption="S.No"
+      dataField="SlNo"
+      [width]="100"
+      alignment="left"
+    ></dxi-column>
+    <dxi-column dataField="UserRoles" caption="User Role"></dxi-column>
+    <dxi-column
+      dataField="LastModifiedTime"
+      Caption="Last Modified Time"
+      [calculateCellValue]="formatLastModifiedTime"
+    ></dxi-column>
+  </dx-data-grid>
+
+  <form-popup
+    class="formPopupClass m-2"
+    [(visible)]="isAddFormVisible"
+    titleText="New User Role"
+    [height]="'100vh'"
+    [width]="popup_width"
+    (save)="onClickSaveNewData()"
+    (onHiding)="onPopupClose()"
+    [showApprove]="false"
+  >
+    <app-user-level-new-form
+      *ngIf="isAddFormVisible"
+      #userLevelNewForm
+      [sharedValue]="isAddFormVisible"
+    ></app-user-level-new-form>
+  </form-popup>
+
+  <form-popup
+    class="formPopupClass m-2"
+    [(visible)]="iseditFormVisible"
+    titleText="Edit User Role"
+    [height]="'100vh'"
+    [width]="popup_width"
+    (save)="onRowUpdating()"
+    (onHiding)="onEditPopupClose()"
+    [showApprove]="false"
+  >
+    <app-user-level-edit-form
+      [editValue]="clickedRowData"
+    ></app-user-level-edit-form>
+  </form-popup>
+
+  <dx-load-panel
+    [visible]="isSaving || isUpdating"
+    [showIndicator]="true"
+    [showPane]="true"
+    [shading]="true"
+    [message]="isSaving ? 'Saving...' : 'Updating...'"
+  >
+  </dx-load-panel>
+</div>

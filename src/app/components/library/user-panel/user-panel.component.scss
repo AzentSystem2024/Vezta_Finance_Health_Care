@@ -1,0 +1,100 @@
+@use "../../../../variables.scss" as *;
+
+.user-panel ::ng-deep {
+  display: flex;
+  flex-direction: column;
+
+  .user-button.dx-dropdownbutton {
+    margin-left: 5px;
+
+    img.dx-icon {
+      border-radius: 50%;
+      margin: 0;
+      width: auto;
+      aspect-ratio: 1 / 1;
+      box-sizing: border-box;
+      border: 1px solid var(--border-color);
+      object-fit: cover;
+      object-position: top;
+      background: rgb(255, 255, 255);
+      background-clip: padding-box;
+
+      ::ng-deep .dx-theme-generic & {
+        height: var(--drop-down-gnrc-button-height);
+      }
+
+      ::ng-deep .dx-theme-material & {
+        height: 100%;
+      }
+
+      ::ng-deep .dx-theme-fluent & {
+        height: 100%;
+      }
+    }
+
+    .dx-buttongroup {
+      vertical-align: middle;
+
+      .dx-button.dx-button-has-icon:not(.dx-button-has-text) {
+        .dx-button-content {
+          padding: 0;
+        }
+
+        &.dx-state-hover,
+        &.dx-state-focused {
+          background-color: transparent;
+
+          img.dx-icon {
+            border-color: var(--accent-color);
+          }
+        }
+      }
+    }
+  }
+}
+
+::ng-deep .user-button .dx-button-text {
+  width: 31px;
+  height: 31px;
+  border-radius: 50%;
+  background: #1a73e8; /* Google blue */
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 600;
+  font-size: 14px;
+  padding: 0;
+}
+
+::ng-deep .user-button.dx-button {
+  padding: 0 !important;
+  min-width: auto;
+}
+
+/* Remove DevExtreme hover background */
+::ng-deep .user-button.dx-button.dx-state-hover {
+  background: transparent !important;
+}
+
+/* Remove focus / active backgrounds */
+::ng-deep .user-button.dx-button.dx-state-focused,
+::ng-deep .user-button.dx-button.dx-state-active {
+  background: transparent !important;
+}
+
+/* Ensure container has zero padding */
+::ng-deep .user-button.dx-button,
+::ng-deep .user-button .dx-button-content {
+  padding: 0 !important;
+}
+
+/* Circle hover only */
+::ng-deep .user-button .dx-button-text:hover {
+  box-shadow: 0 0 0 4px rgba(26, 115, 232, 0.15);
+}
+.bell-icon {
+  font-size: 22px;
+
+  color: var(--base-text-color);
+}

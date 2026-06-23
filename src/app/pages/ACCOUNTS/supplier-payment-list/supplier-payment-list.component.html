@@ -1,0 +1,366 @@
+<div class="view-wrapper list-page">
+  <div class="grid-container">
+    <dx-data-grid
+      #dataGrid
+      noDataText="No data available"
+      [width]="'100%'"
+      [height]="'82vh'"
+      [loadPanel]="{
+        enabled: true,
+        text: 'Loading...',
+        showIndicator: true,
+        showPane: true,
+      }"
+      class="grid theme-dependent"
+      [dataSource]="filteredSupplierPaymentList"
+      [showBorders]="true"
+      [showRowLines]="true"
+      [showColumnLines]="true"
+      [columnAutoWidth]="false"
+      [wordWrapEnabled]="false"
+      [rowAlternationEnabled]="true"
+      [allowColumnReordering]="true"
+      [showColumnHeaders]="true"
+      [columnAutoWidth]="true"
+      [allowColumnResizing]="true"
+      [columnResizingMode]="'nextColumn'"
+      [filterRow]="{ visible: false }"
+      [headerFilter]="{ visible: false }"
+      [scrolling]="{ mode: 'virtual' }"
+      rowAlternationInterval="2"
+      [selection]="{ mode: 'single' }"
+      focusStateEnabled="false"
+      (onEditingStart)="onEditPayment($event)"
+      (onRowRemoving)="onDeletePayment($event)"
+      (onCellPrepared)="onCellPrepared($event)"
+    >
+      <dxo-editing
+        mode="popup"
+        [allowUpdating]="canEdit"
+        [allowDeleting]="canDelete"
+      ></dxo-editing>
+      <dxo-export
+        [enabled]="true"
+        [allowExportSelectedData]="false"
+        [formats]="['xlsx']"
+      >
+      </dxo-export>
+      <dxo-paging [pageSize]="10"></dxo-paging>
+      <dxo-pager
+        [visible]="true"
+        [allowedPageSizes]="allowedPageSizes"
+        [displayMode]="displayMode"
+        [showPageSizeSelector]="showPageSizeSelector"
+        [showInfo]="true"
+        [showNavigationButtons]="true"
+      ></dxo-pager>
+      <dxo-load-panel [showPane]="false"></dxo-load-panel>
+      <dxo-scrolling mode="standard"></dxo-scrolling>
+      <dxo-filter-row
+        [visible]="isFilterRowVisible"
+        [applyFilter]="auto"
+      ></dxo-filter-row>
+      <dxo-header-filter [visible]="isFilterOpened">
+        <dxo-search [enabled]="true"></dxo-search>
+      </dxo-header-filter>
+      <dxo-filter-panel [visible]="isFilterOpened"></dxo-filter-panel>
+      <dxo-filter-builder [allowHierarchicalFields]="true">
+      </dxo-filter-builder>
+
+      <dxo-filter-row
+        [visible]="isFilterRowVisible"
+        [applyFilter]="auto"
+      ></dxo-filter-row>
+      <dxo-toolbar>
+        <dxi-item location="before">
+          <div class="grid-header">Supplier Payment</div>
+        </dxi-item>
+        <dxi-item location="after" template="dateFilterTemplate"></dxi-item>
+        <dxi-item
+          location="after"
+          locateInMenu="auto"
+          widget="dxButton"
+          [options]="searchButtonOptions"
+        ></dxi-item>
+
+        <dxi-item
+          location="after"
+          locateInMenu="auto"
+          widget="dxButton"
+          [options]="refreshButtonOptions"
+        ></dxi-item>
+        <!-- Divider -->
+        <dxi-item location="after">
+          <div class="toolbar-divider"></div>
+        </dxi-item>
+        <dxi-item
+          name="exportButton"
+          location="after"
+          cssClass="export-btn"
+        ></dxi-item>
+
+        <dxi-item
+          location="after"
+          locateInMenu="auto"
+          widget="dxButton"
+          [options]="addButtonOptions"
+        ></dxi-item>
+      </dxo-toolbar>
+
+      <div *dxTemplate="let data of 'dateFilterTemplate'">
+        <dx-select-box
+          [dataSource]="dateRanges"
+          [displayExpr]="displayExpr"
+          valueExpr="value"
+          [(value)]="selectedDateRange"
+          (onValueChanged)="onDateRangeChanged($event)"
+          (onOpened)="attachItemClickHandler($event)"
+          width="220"
+        >
+          <!-- This controls the dropdown list rendering -->
+          <div *dxTemplate="let item of 'item'">
+            {{ item.value === "custom" ? "Custom" : item.label }}
+          </div>
+        </dx-select-box>
+      </div>
+
+      <dxi-column dataField="DOC_NO" caption="Payment No"></dxi-column>
+      <dxi-column dataField="SUPP_NAME" caption="Supplier"></dxi-column>
+      <dxi-column dataField="NARRATION" caption="Narration"></dxi-column>
+      <dxi-column dataField="PAY_TYPE_NAME" caption="Pay Type"></dxi-column>
+      <dxi-column
+        dataField="NET_AMOUNT"
+        caption="Net Amount"
+        dataType="number"
+        [format]="{ type: 'fixedPoint', precision: 2 }"
+      ></dxi-column>
+      <dxi-column
+        dataField="RECEIVED_AMOUNT"
+        caption="Received Amount"
+        dataType="number"
+        [format]="{ type: 'fixedPoint', precision: 2 }"
+      ></dxi-column>
+      <dxi-column dataField="BANK_NAME" caption="Bank"></dxi-column>
+      <dxi-column
+        dataField="PAY_DATE"
+        caption="Date"
+        dataType="date"
+        [allowEditing]="false"
+        format="dd-MM-yyyy"
+      ></dxi-column>
+      <dxi-column
+        caption="Status"
+        dataField="TRANS_STATUS"
+        [width]="80"
+        [cellTemplate]="statusCellRender"
+        [allowHeaderFiltering]="true"
+        [headerFilter]="{
+          dataSource: getStatusFilterData,
+          encodeHtml: false,
+        }"
+      >
+      </dxi-column>
+
+      <dxi-column
+        type="buttons"
+        caption="Actions"
+        [width]="140"
+        cellTemplate="actionTemplate"
+      >
+      </dxi-column>
+      <div *dxTemplate="let cellData of 'actionTemplate'">
+        <!-- Edit -->
+        <i
+          *ngIf="canEdit"
+          class="dx-icon dx-icon-edit"
+          [style.opacity]="
+            cellData.data.TRANS_STATUS === 2 || cellData.data.TRANS_STATUS === 5
+              ? '0.4'
+              : '1'
+          "
+          [style.pointer-events]="
+            cellData.data.TRANS_STATUS === 2 || cellData.data.TRANS_STATUS === 5
+              ? 'none'
+              : 'auto'
+          "
+          style="cursor: pointer; margin-right: 10px"
+          title="Edit"
+          (click)="onEditPayment({ data: cellData.data, cancel: false })"
+        ></i>
+
+        <!-- Delete -->
+        <i
+          *ngIf="canDelete"
+          class="dx-icon dx-icon-trash"
+          [style.opacity]="
+            cellData.data.TRANS_STATUS === 2 || cellData.data.TRANS_STATUS === 5
+              ? '0.4'
+              : '1'
+          "
+          [style.pointer-events]="
+            cellData.data.TRANS_STATUS === 2 || cellData.data.TRANS_STATUS === 5
+              ? 'none'
+              : 'auto'
+          "
+          style="cursor: pointer; margin-right: 10px"
+          title="Delete"
+          (click)="onDeletePayment({ data: cellData.data, cancel: false })"
+        ></i>
+
+        <!-- Verify -->
+        <span
+          *ngIf="
+            (cellData.data.TRANS_STATUS === 2 && canApprove) ||
+            (cellData.data.TRANS_STATUS !== 2 && canVerify) ||
+            cellData.data.TRANS_STATUS >= 5
+          "
+          style="
+            position: relative;
+            display: inline-block;
+            width: 18px;
+            height: 18px;
+            margin-left: 10px;
+            cursor: pointer;
+            vertical-align: middle;
+          "
+          [title]="
+            cellData.data.TRANS_STATUS === 5
+              ? 'Approved'
+              : cellData.data.TRANS_STATUS === 2
+                ? 'Approve'
+                : 'Verify'
+          "
+          (click)="onVerifyPayment({ row: { data: cellData.data } })"
+        >
+          <!-- Blue badge -->
+          <i
+            class="fas fa-certificate"
+            [style.color]="
+              cellData.data.TRANS_STATUS === 5
+                ? '#10B981'
+                : cellData.data.TRANS_STATUS === 2
+                  ? '#0073D8'
+                  : '#FFA500'
+            "
+            style="font-size: 18px; position: absolute; top: 0; left: 0"
+          ></i>
+
+          <!-- White tick -->
+          <i
+            class="fas fa-check"
+            style="
+              color: white;
+              font-size: 7px;
+              position: absolute;
+              top: 5px;
+              left: 5px;
+              pointer-events: none;
+            "
+          ></i>
+        </span>
+      </div>
+    </dx-data-grid>
+  </div>
+</div>
+
+<app-custom-date-popup
+  [(visible)]="showCustomDatePopup"
+  [startDate]="customStartDate"
+  [endDate]="customEndDate"
+  (applyDates)="onCustomDateApplied($event)"
+>
+</app-custom-date-popup>
+
+<dx-popup
+  *ngIf="addSupllierPayment"
+  [(visible)]="addSupllierPayment"
+  [width]="'75vw'"
+  [height]="'100vh'"
+  title="New Supplier Payment"
+  (onHiding)="handleClose()"
+>
+  <!-- <ng-container *ngIf="isAddInvoice"> -->
+  <app-add-supplier-payment
+    *ngIf="addSupllierPayment"
+    (popupClosed)="handleClose()"
+    [canApprove]="canApprove"
+  ></app-add-supplier-payment>
+  <!-- </ng-container> -->
+</dx-popup>
+
+<dx-popup
+  *ngIf="isEditReceipt"
+  [(visible)]="isEditReceipt"
+  [width]="'75vw'"
+  [height]="'100vh'"
+  title="Supplier Payment"
+  (onHiding)="handleClose()"
+>
+  <!-- <ng-container *ngIf="isAddInvoice"> -->
+  <app-edit-supplier-payment
+    *ngIf="isEditReceipt"
+    [paymentData]="selectedReceipt"
+    [isReadOnlyMode]="isReadOnlyReceipt"
+    (popupClosed)="handleClose()"
+    [canApprove]="canApprove"
+    [supplierPaymentId]="selectedSupplierPayment"
+  ></app-edit-supplier-payment>
+  <!-- </ng-container> -->
+</dx-popup>
+
+<dx-popup
+  *ngIf="isVerifyPayment"
+  [(visible)]="isVerifyPayment"
+  [width]="'95vw'"
+  [height]="'100vh'"
+  [title]="
+    selectedReceipt?.TRANS_STATUS === 2 ? 'Approve Payment' : 'Verify Payment'
+  "
+  (popupClosed)="handleClose()"
+>
+  <app-edit-supplier-payment
+    [isEditing]="true"
+    [paymentData]="selectedReceipt"
+    [isVerifyMode]="selectedReceipt?.TRANS_STATUS !== 2"
+    [isApproveMode]="selectedReceipt?.TRANS_STATUS === 2"
+    (popupClosed)="handleClose()"
+    [canApprove]="canApprove"
+  >
+  </app-edit-supplier-payment>
+</dx-popup>
+
+<dx-popup
+  *ngIf="isApprovePayment"
+  [(visible)]="isApprovePayment"
+  [width]="'95vw'"
+  [height]="'100vh'"
+  title="Approve Payment"
+  (onHiding)="handleClose()"
+>
+  <app-edit-supplier-payment
+    [isEditing]="true"
+    [paymentData]="selectedReceipt"
+    [isVerifyMode]="selectedReceipt?.[0]?.TRANS_STATUS !== 2"
+    [isApproveMode]="selectedReceipt?.[0]?.TRANS_STATUS === 2"
+    (popupClosed)="handleClose()"
+    [canApprove]="canApprove"
+  >
+  </app-edit-supplier-payment>
+</dx-popup>
+
+<dx-popup
+  *ngIf="isViewPayment"
+  [(visible)]="isViewPayment"
+  [width]="'90vw'"
+  [height]="'100vh'"
+  title="View Supplier Payment"
+  (onHiding)="handleClose()"
+>
+  <app-edit-supplier-payment
+    [paymentData]="selectedReceipt"
+    [isReadOnlyMode]="isReadOnlyReceipt"
+    (popupClosed)="handleClose()"
+    [canApprove]="canApprove"
+    [supplierPaymentId]="selectedSupplierPayment"
+  ></app-edit-supplier-payment>
+</dx-popup>

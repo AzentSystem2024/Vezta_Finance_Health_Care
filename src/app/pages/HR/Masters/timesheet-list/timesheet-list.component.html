@@ -1,0 +1,431 @@
+<div class="view-wrapper list-page">
+  <div class="grid-container">
+    <dx-data-grid
+      #dataGrid
+      noDataText=" "
+      [width]="'100%'"
+      [height]="'82vh'"
+      [loadPanel]="{
+        enabled: true,
+        text: 'Loading...',
+        showIndicator: true,
+        showPane: true,
+      }"
+      class="grid theme-dependent"
+      [dataSource]="timesheetList"
+      [showBorders]="true"
+      [showColumnLines]="true"
+      [columnAutoWidth]="false"
+      [wordWrapEnabled]="false"
+      [rowAlternationEnabled]="true"
+      [headerFilter]="{ visible: true }"
+      [allowColumnReordering]="true"
+      [filterRow]="{ visible: true, applyFilter: 'auto' }"
+      [showColumnHeaders]="true"
+      [columnAutoWidth]="true"
+      [allowColumnResizing]="true"
+      [columnResizingMode]="'nextColumn'"
+      [headerFilter]="{ visible: true }"
+      [scrolling]="{ mode: 'virtual' }"
+      rowAlternationInterval="2"
+      keyExpr="ID"
+      focusStateEnabled="false"
+      (onExporting)="onExporting($event)"
+      (onRowRemoving)="onDeleteTimesheet($event)"
+      [selection]="{ mode: 'multiple', showCheckBoxesMode: 'always' }"
+      [selectedRowKeys]="selectedRowKeys"
+      (onSelectionChanged)="onSelectionChanged($event)"
+      (onCellPrepared)="onCellPrepared($event)"
+      (onEditingStart)="onEditingStart($event)"
+    >
+      <dxo-column-chooser
+        [height]="500"
+        hideOnOutsideClick="true"
+        [enabled]="true"
+        mode="select"
+      >
+      </dxo-column-chooser>
+      <dxo-export
+        [enabled]="true"
+        [allowExportSelectedData]="false"
+        [formats]="['xlsx']"
+      >
+      </dxo-export>
+      <dxo-editing
+        mode="popup"
+        [allowUpdating]="canEdit"
+        [allowDeleting]="isDeleteVisible || canDelete"
+      ></dxo-editing>
+      <dxo-paging [pageSize]="10"></dxo-paging>
+      <dxo-pager
+        [visible]="true"
+        [allowedPageSizes]="allowedPageSizes"
+        [displayMode]="displayMode"
+        [showPageSizeSelector]="showPageSizeSelector"
+        [showInfo]="true"
+        [showNavigationButtons]="true"
+      ></dxo-pager>
+      <dxo-load-panel [showPane]="false"></dxo-load-panel>
+      <dxo-scrolling mode="virtual"></dxo-scrolling>
+      <dxo-filter-row
+        [visible]="isFilterRowVisible"
+        [applyFilter]="auto"
+      ></dxo-filter-row>
+      <dxo-header-filter [visible]="isFilterOpened">
+        <dxo-search [enabled]="true"></dxo-search>
+      </dxo-header-filter>
+      <dxo-filter-panel [visible]="isFilterOpened"></dxo-filter-panel>
+      <dxo-filter-builder [allowHierarchicalFields]="true">
+      </dxo-filter-builder>
+
+      <dxo-filter-row
+        [visible]="isFilterRowVisible"
+        [applyFilter]="auto"
+      ></dxo-filter-row>
+      <dxo-toolbar>
+        <dxi-item location="before">
+          <div
+            class="grid-header"
+            style="
+              font-weight: 600;
+              font-size: 20px;
+              margin-left: 12px;
+              padding: -3px;
+              margin-right: 3px;
+            "
+          >
+            Time Sheet
+          </div>
+        </dxi-item>
+
+        <!-- Buttons -->
+        <dxi-item location="after">
+          <ng-template dxTemplate>
+            <div
+              class="month-selector"
+              style="
+                display: flex;
+                align-items: center;
+                gap: 8px;
+                position: relative;
+              "
+            >
+              <!-- Previous Month -->
+              <dx-button
+                icon="chevronleft"
+                [disabled]="false"
+                [focusStateEnabled]="false"
+                [activeStateEnabled]="true"
+                [hoverStateEnabled]="true"
+                (onClick)="goToPreviousMonth()"
+              >
+              </dx-button>
+
+              <!-- Month Label -->
+              <span class="month-label" (click)="toggleCalendar()">
+                {{ selectedMonth | date: "MMMM yyyy" }}
+              </span>
+
+              <!-- Next Month -->
+              <dx-button
+                icon="chevronright"
+                [disabled]="false"
+                [focusStateEnabled]="false"
+                [activeStateEnabled]="true"
+                [hoverStateEnabled]="true"
+                (onClick)="goToNextMonth()"
+              >
+              </dx-button>
+
+              <!-- Calendar Popup -->
+              <div *ngIf="calendarVisible" class="calendar-popup">
+                <div class="calendar-header">
+                  <button class="year-button" (click)="previousYear()">
+                    &lt;
+                  </button>
+
+                  <span class="year-clickable" (click)="toggleYearSelector()">
+                    {{ selectedYear }}
+                  </span>
+
+                  <button class="year-button" (click)="nextYear()">&gt;</button>
+                </div>
+
+                <!-- Year Selector -->
+                <div
+                  class="year-selector-popup"
+                  *ngIf="yearSelectorVisible"
+                  (click)="$event.stopPropagation()"
+                >
+                  <div class="year-grid">
+                    <div
+                      class="year-option"
+                      *ngFor="let year of years"
+                      (click)="selectYear(year, $event)"
+                    >
+                      {{ year }}
+                    </div>
+                  </div>
+                </div>
+
+                <div class="calendar-body"></div>
+              </div>
+            </div>
+          </ng-template>
+        </dxi-item>
+        <dxi-item location="after" locateInMenu="auto"> </dxi-item>
+        <dxi-item
+          *ngIf="canAdd"
+          location="after"
+          locateInMenu="auto"
+          [options]="addButtonOptions"
+          widget="dxButton"
+        >
+        </dxi-item>
+        <dxi-item
+          *ngIf="canVerify"
+          location="after"
+          widget="dxButton"
+          [options]="VerifyButtonOptions"
+        ></dxi-item>
+        <dxi-item
+          *ngIf="canApprove"
+          location="after"
+          widget="dxButton"
+          [options]="approveButtonOptions"
+        ></dxi-item>
+
+        <dxi-item
+          location="after"
+          locateInMenu="auto"
+          widget="dxButton"
+          [options]="searchButtonOptions"
+        ></dxi-item>
+
+        <dxi-item
+          location="after"
+          locateInMenu="auto"
+          widget="dxButton"
+          [options]="refreshButtonOptions"
+        ></dxi-item>
+        <dxi-item location="after">
+          <div class="toolbar-divider"></div>
+        </dxi-item>
+        <dxi-item
+          name="exportButton"
+          location="after"
+          cssClass="export-btn"
+        ></dxi-item>
+      </dxo-toolbar>
+
+      <dxi-column dataField="EMP_NO" caption="Employee No."></dxi-column>
+      <dxi-column dataField="EMP_NAME" caption="Employee Name"></dxi-column>
+      <dxi-column dataField="WORKED_DAYS" caption="Worked Days"></dxi-column>
+      <dxi-column dataField="OT_HOURS" caption="OT Hours"></dxi-column>
+      <dxi-column dataField="LESS_HOURS" caption="Less Hours"></dxi-column>
+
+      <!-- <dxi-column
+        dataField="STATUS"
+        caption="Status"
+        cellTemplate="statusCellTemplate"
+        width="100  "
+        alignment="right"
+      >
+      </dxi-column>
+      <div *dxTemplate="let cellData of 'statusCellTemplate'">
+        <i
+          class="fas fa-flag"
+          [ngClass]="getStatusFlagClass(cellData.value)"
+          [attr.title]="cellData.value"
+          style="margin-left: 10px; cursor: default"
+        ></i>
+      </div> -->
+      <dxi-column dataField="STATUS" cellTemplate="statusCellRender">
+      </dxi-column>
+
+      <div *dxTemplate="let data of 'statusCellRender'">
+        <i
+          class="fas fa-flag"
+          [style.color]="
+            data.data.STATUS === 'Approved'
+              ? '#10B981'
+              : data.data.STATUS === 'Verified'
+                ? '#0073D8'
+                : '#FFA500'
+          "
+        ></i>
+      </div>
+      <dxi-column
+        type="buttons"
+        caption="Actions"
+        [width]="140"
+        cellTemplate="actionTemplate"
+      >
+      </dxi-column>
+      <div *dxTemplate="let cellData of 'actionTemplate'">
+        <!-- Edit -->
+        <i
+          *ngIf="canEdit"
+          class="dx-icon dx-icon-edit"
+          [style.opacity]="
+            cellData.data.STATUS === 'Verified' ||
+            cellData.data.STATUS === 'Approved'
+              ? '0.4'
+              : '1'
+          "
+          [style.pointer-events]="
+            cellData.data.STATUS === 'Verified' ||
+            cellData.data.STATUS === 'Approved'
+              ? 'none'
+              : 'auto'
+          "
+          style="cursor: pointer; margin-right: 10px"
+          title="Edit"
+          (click)="onEditingStart({ data: cellData.data, cancel: false })"
+        ></i>
+
+        <!-- Delete -->
+        <i
+          *ngIf="canDelete"
+          class="dx-icon dx-icon-trash"
+          [style.opacity]="
+            cellData.data.STATUS === 'Verified' ||
+            cellData.data.STATUS === 'Approved'
+              ? '0.4'
+              : '1'
+          "
+          [style.pointer-events]="
+            cellData.data.STATUS === 'Verified' ||
+            cellData.data.STATUS === 'Approved'
+              ? 'none'
+              : 'auto'
+          "
+          style="cursor: pointer; margin-right: 10px"
+          title="Delete"
+          (click)="onDeleteTimesheet({ data: cellData.data, cancel: false })"
+        ></i>
+
+        <!-- Verify -->
+        <span
+          *ngIf="SessioncanVerify"
+          style="
+            position: relative;
+            display: inline-block;
+            width: 18px;
+            height: 18px;
+            margin-left: 10px;
+            cursor: pointer;
+            vertical-align: middle;
+          "
+          [title]="
+            cellData.data.STATUS === 'Approved'
+              ? 'Approved'
+              : cellData.data.STATUS === 'Verified'
+                ? 'Approve'
+                : 'Verify'
+          "
+          (click)="onEditingStart({ data: cellData.data, cancel: false })"
+        >
+          <!-- Blue badge -->
+          <i
+            class="fas fa-certificate"
+            [style.color]="
+              cellData.data.STATUS === 'Approved'
+                ? '#10B981'
+                : cellData.data.STATUS === 'Verified'
+                  ? '#0073D8'
+                  : '#FFA500'
+            "
+            style="font-size: 18px; position: absolute; top: 0; left: 0"
+          ></i>
+
+          <!-- White tick -->
+          <i
+            class="fas fa-check"
+            style="
+              color: white;
+              font-size: 7px;
+              position: absolute;
+              top: 5px;
+              left: 5px;
+              pointer-events: none;
+            "
+          ></i>
+        </span>
+      </div>
+    </dx-data-grid>
+  </div>
+</div>
+
+<dx-popup
+  [(visible)]="addTimesheetPopupOpened"
+  [width]="'95vw'"
+  [height]="'95vh'"
+  title="New Timesheet"
+  (onHiding)="handleClose()"
+>
+  <app-timesheet-add
+    *ngIf="addTimesheetPopupOpened"
+    [selectedMonth]="selectedMonthForAdd"
+    [existingTimesheets]="timesheetList"
+    (popupClosed)="handleClose()"
+  ></app-timesheet-add>
+</dx-popup>
+
+<dx-popup
+  [(visible)]="editTimesheetPopupOpened"
+  [width]="'95vw'"
+  [height]="'95vh'"
+  title="Edit Timesheet"
+  (onHiding)="handleClose()"
+>
+  <app-timesheet-edit
+    *ngIf="editTimesheetPopupOpened"
+    [timesheet]="selectedTimesheet"
+    [existingTimesheets]="timesheetList"
+    (popupClosed)="handleClose()"
+  ></app-timesheet-edit>
+</dx-popup>
+
+<dx-popup
+  [(visible)]="verifyTimesheetPopupOpened"
+  [width]="'95vw'"
+  [height]="'95vh'"
+  title="Verify Timesheet"
+  (onHiding)="handleClose()"
+>
+  <app-timesheet-verify
+    *ngIf="verifyTimesheetPopupOpened"
+    [timesheet]="selectedTimesheet"
+    [existingTimesheets]="timesheetList"
+    (popupClosed)="handleClose()"
+  ></app-timesheet-verify>
+</dx-popup>
+
+<dx-popup
+  [(visible)]="approveTimesheetPopupOpened"
+  [width]="'95vw'"
+  [height]="'95vh'"
+  title="Approve Timesheet"
+  (onHiding)="handleClose()"
+>
+  <app-timesheet-approve
+    *ngIf="approveTimesheetPopupOpened"
+    [timesheet]="selectedTimesheet"
+    (popupClosed)="handleClose()"
+  ></app-timesheet-approve>
+</dx-popup>
+
+<dx-popup
+  [(visible)]="viewTimesheetPopupOpened"
+  [width]="'95vw'"
+  [height]="'95vh'"
+  title="View Timesheet"
+  (onHiding)="handleClose()"
+>
+  <app-timesheet-view
+    *ngIf="viewTimesheetPopupOpened"
+    [timesheet]="selectedTimesheet"
+    (popupClosed)="handleClose()"
+  ></app-timesheet-view>
+</dx-popup>

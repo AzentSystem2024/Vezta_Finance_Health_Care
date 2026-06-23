@@ -1,0 +1,69 @@
+.plain-styled-form {
+  width: 100%; /* Ensure the form takes up the full width of its container */
+  box-sizing: border-box; /* Include padding and border in the element's total width and height */
+  padding: 20px; /* Optional: Add padding for better spacing */
+}
+
+.plain-styled-form .dx-text-box {
+  max-width: 100%; /* Ensure the text box does not exceed the container's width */
+  box-sizing: border-box; /* Include padding and border in the element's total width and height */
+}
+
+/* =============================== */
+/* HEADER */
+/* =============================== */
+
+.grid-header {
+  font-weight: 600;
+  font-size: 20px;
+  margin-left: 12px;
+}
+
+/* =============================== */
+/* + NEW BUTTON */
+/* =============================== */
+
+::ng-deep .add-button {
+  background-color: #1e88e5;
+  border-radius: 8px;
+  height: 35px;
+  padding: 0 16px;
+  border: none;
+}
+
+::ng-deep .add-button .dx-button-content {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+}
+
+.add-btn-content {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: #ffffff;
+}
+
+.add-btn-content .iconify {
+  width: 20px;
+  height: 20px;
+  color: #ffffff;
+}
+
+.add-text {
+  font-weight: 500;
+  font-size: 14px;
+  line-height: 20px;
+  white-space: nowrap;
+}
+
+/* =============================== */
+/* TOOLBAR DIVIDER */
+/* =============================== */
+
+.toolbar-divider {
+  width: 1px;
+  height: 24px;
+  background-color: rgba(0, 0, 0, 0.15);
+}

@@ -1,0 +1,345 @@
+<div class="view-wrapper list-page">
+  <div class="grid-container">
+    <dx-data-grid
+      #dataGrid
+      noDataText="No data available"
+      [width]="'100%'"
+      [height]="'82vh'"
+      [loadPanel]="{
+        enabled: true,
+        text: 'Loading...',
+        showIndicator: true,
+        showPane: true,
+      }"
+      class="grid theme-dependent"
+      [dataSource]="filteredPurchaseInvoices"
+      [showColumnLines]="true"
+      [showBorders]="true"
+      [wordWrapEnabled]="false"
+      [rowAlternationEnabled]="true"
+      [allowColumnReordering]="true"
+      [showColumnHeaders]="true"
+      [columnAutoWidth]="false"
+      [allowColumnResizing]="true"
+      [columnResizingMode]="'nextColumn'"
+      [filterRow]="{ visible: false }"
+      [headerFilter]="{ visible: false }"
+      rowAlternationInterval="2"
+      [selection]="{ mode: 'single' }"
+      focusStateEnabled="false"
+      [width]="'100%'"
+      [height]="'82vh'"
+      (onEditingStart)="onEditInvoice($event)"
+      (onRowRemoving)="onDeleteInvoice($event)"
+      (onCellPrepared)="onCellPrepared($event)"
+    >
+      <dxo-editing
+        mode="popup"
+        [allowUpdating]="canEdit"
+        [allowDeleting]="canDelete"
+      ></dxo-editing>
+      <dxo-export
+        [enabled]="true"
+        [allowExportSelectedData]="false"
+        [formats]="['xlsx']"
+      >
+      </dxo-export>
+      <dxo-paging [pageSize]="10"></dxo-paging>
+      <dxo-pager
+        [visible]="true"
+        [allowedPageSizes]="allowedPageSizes"
+        [displayMode]="displayMode"
+        [showPageSizeSelector]="showPageSizeSelector"
+        [showInfo]="true"
+        [showNavigationButtons]="true"
+      ></dxo-pager>
+      <dxo-load-panel [showPane]="false"></dxo-load-panel>
+      <dxo-scrolling mode="virtual"></dxo-scrolling>
+      <dxo-filter-row
+        [visible]="isFilterRowVisible"
+        [applyFilter]="auto"
+      ></dxo-filter-row>
+      <dxo-header-filter [visible]="isFilterOpened">
+        <dxo-search [enabled]="true"></dxo-search>
+      </dxo-header-filter>
+      <dxo-filter-panel [visible]="isFilterOpened"></dxo-filter-panel>
+      <dxo-filter-builder [allowHierarchicalFields]="true">
+      </dxo-filter-builder>
+
+      <dxo-filter-row
+        [visible]="isFilterRowVisible"
+        [applyFilter]="auto"
+      ></dxo-filter-row>
+      <dxo-toolbar>
+        <dxi-item location="before">
+          <div class="grid-header">Purchase Invoice</div>
+        </dxi-item>
+        <dxi-item location="after" template="dateFilterTemplate"></dxi-item>
+        <dxi-item
+          location="after"
+          locateInMenu="auto"
+          widget="dxButton"
+          [options]="searchButtonOptions"
+        ></dxi-item>
+
+        <dxi-item
+          location="after"
+          locateInMenu="auto"
+          widget="dxButton"
+          [options]="refreshButtonOptions"
+        ></dxi-item>
+        <!-- Divider -->
+        <dxi-item location="after">
+          <div class="toolbar-divider"></div>
+        </dxi-item>
+        <dxi-item
+          name="exportButton"
+          location="after"
+          cssClass="export-btn"
+        ></dxi-item>
+
+        <dxi-item
+          *ngIf="canAdd"
+          location="after"
+          locateInMenu="auto"
+          widget="dxButton"
+          [options]="addButtonOptions"
+        ></dxi-item>
+      </dxo-toolbar>
+      <div *dxTemplate="let data of 'dateFilterTemplate'">
+        <dx-select-box
+          [dataSource]="dateRanges"
+          [displayExpr]="displayExpr"
+          valueExpr="value"
+          [(value)]="selectedDateRange"
+          (onValueChanged)="onDateRangeChanged($event)"
+          (onOpened)="attachItemClickHandler($event)"
+          width="220"
+        >
+          <!-- This controls the dropdown list rendering -->
+          <div *dxTemplate="let item of 'item'">
+            {{ item.value === "custom" ? "Custom" : item.label }}
+          </div>
+        </dx-select-box>
+      </div>
+      <dxi-column dataField="DOC_NO" caption="Purchase No"></dxi-column>
+      <!-- <dxi-column dataField="STORE_NAME" caption="Store"></dxi-column> -->
+      <dxi-column
+        dataField="SUPPPLIER_NAME"
+        caption="Supplier Name"
+      ></dxi-column>
+      <dxi-column
+        dataField="NET_AMOUNT"
+        caption="NET Amount"
+        dataType="number"
+        format="#,##0.00"
+      ></dxi-column>
+      <dxi-column dataField="NARRATION" caption="Remark"></dxi-column>
+      <dxi-column
+        dataField="PURCH_DATE"
+        caption="Date"
+        dataType="date"
+        [allowEditing]="false"
+        format="dd-MM-yyyy"
+      ></dxi-column>
+      <dxi-column
+        caption="Status"
+        dataField="STATUS"
+        [width]="80"
+        [cellTemplate]="statusCellRender"
+        [allowHeaderFiltering]="true"
+        [headerFilter]="{
+          dataSource: getStatusFilterData,
+          encodeHtml: false,
+        }"
+      >
+      </dxi-column>
+      <!-- <dxi-column
+      type="buttons"
+      [buttons]="allActionButtons"
+      fixed="true"
+      fixedPosition="right"
+      width="150"
+    ></dxi-column> -->
+
+      <dxi-column
+        type="buttons"
+        caption="Actions"
+        [width]="140"
+        cellTemplate="actionTemplate"
+      >
+      </dxi-column>
+
+      <div *dxTemplate="let cellData of 'actionTemplate'">
+        <!-- Edit -->
+        <i
+          *ngIf="canEdit"
+          class="dx-icon dx-icon-edit"
+          [style.opacity]="
+            cellData.data.STATUS === 'Verified' ||
+            cellData.data.STATUS === 'Approved'
+              ? '0.4'
+              : '1'
+          "
+          [style.pointer-events]="
+            cellData.data.STATUS === 'Verified' ||
+            cellData.data.STATUS === 'Approved'
+              ? 'none'
+              : 'auto'
+          "
+          style="cursor: pointer; margin-right: 10px"
+          title="Edit"
+          (click)="onEditInvoice({ data: cellData.data, cancel: false })"
+        ></i>
+
+        <!-- Delete -->
+        <i
+          *ngIf="canDelete"
+          class="dx-icon dx-icon-trash"
+          [style.opacity]="
+            cellData.data.STATUS === 'Verified' ||
+            cellData.data.STATUS === 'Approved'
+              ? '0.4'
+              : '1'
+          "
+          [style.pointer-events]="
+            cellData.data.STATUS === 'Verified' ||
+            cellData.data.STATUS === 'Approved'
+              ? 'none'
+              : 'auto'
+          "
+          style="cursor: pointer; margin-right: 10px"
+          title="Delete"
+          (click)="onDeleteInvoice({ data: cellData.data, cancel: false })"
+        ></i>
+
+        <!-- Verify -->
+        <span
+          *ngIf="canVerify"
+          style="
+            position: relative;
+            display: inline-block;
+            width: 18px;
+            height: 18px;
+            margin-left: 10px;
+            cursor: pointer;
+            vertical-align: middle;
+          "
+          [title]="
+            cellData.data.STATUS === 'Approved'
+              ? 'Approved'
+              : cellData.data.STATUS === 'Closed'
+                ? 'Closed'
+                : cellData.data.STATUS === 'Verified'
+                  ? 'Approve'
+                  : 'Verify'
+          "
+          (click)="onVerifyClick({ row: { data: cellData.data } })"
+        >
+          <!-- Blue badge -->
+          <i
+            class="fas fa-certificate"
+            [style.color]="
+              cellData.data.STATUS === 'Approved'
+                ? '#10B981'
+                : cellData.data.STATUS === 'Closed'
+                  ? '#10B981'
+                  : cellData.data.STATUS === 'Verified'
+                    ? '#0073D8'
+                    : '#FFA500'
+            "
+            style="font-size: 18px; position: absolute; top: 0; left: 0"
+          ></i>
+
+          <!-- White tick -->
+          <i
+            class="fas fa-check"
+            style="
+              color: white;
+              font-size: 7px;
+              position: absolute;
+              top: 5px;
+              left: 5px;
+              pointer-events: none;
+            "
+          ></i>
+        </span>
+      </div>
+    </dx-data-grid>
+  </div>
+</div>
+
+<dx-popup
+  [(visible)]="isAddInvoice"
+  [width]="'100vw'"
+  [height]="'100vh'"
+  title="New Purchase Invoice"
+  (onHiding)="handleClose()"
+>
+  <!-- <ng-container *ngIf="isAddInvoice"> -->
+  <app-add-purchase-invoice
+    (popupClosed)="handleClose()"
+    [canApprove]="canApprove"
+  ></app-add-purchase-invoice>
+  <!-- </ng-container> -->
+</dx-popup>
+
+<dx-popup
+  [(visible)]="isEditInvoice"
+  [width]="'100vw'"
+  [height]="'100vh'"
+  [title]="buttonText"
+  (onHiding)="handleClose()"
+  titleTemplate="popupTitle"
+>
+  <div *dxTemplate="let data of 'popupTitle'">
+    <div class="popup-title-text">
+      {{ buttonText }}
+    </div>
+  </div>
+  <ng-container *ngIf="isEditInvoice">
+    <app-edit-purchase-invoice
+      [invoiceFormData]="selectedInvoice"
+      [readOnly]="isEditInvoiceReadOnly"
+      (popupClosed)="handleClose()"
+      [canApprove]="canApprove"
+      [isVerifyInvoice]="false"
+      [status]="statusFinder"
+    ></app-edit-purchase-invoice>
+  </ng-container>
+</dx-popup>
+
+<dx-popup
+  [(visible)]="isVerifyInvoice"
+  [width]="'100vw'"
+  [height]="'100vh'"
+  [title]="buttonText"
+  (onHiding)="handleClose()"
+  titleTemplate="popupTitle"
+>
+  <div *dxTemplate="let data of 'popupTitle'">
+    <div class="popup-title-text">
+      {{ buttonText }}
+    </div>
+  </div>
+  <ng-container *ngIf="isVerifyInvoice">
+    <app-edit-purchase-invoice
+      [isVerifyInvoice]="true"
+      [isVerifyMode]="selectedInvoice?.STATUS !== 'Verified'"
+      [isApproveMode]="selectedInvoice?.STATUS == 'Verified'"
+      [status]="statusFinder"
+      [invoiceFormData]="selectedInvoice"
+      [readOnly]="isEditInvoiceReadOnly"
+      (popupClosed)="handleClose()"
+      [canApprove]="canApprove"
+    ></app-edit-purchase-invoice>
+  </ng-container>
+</dx-popup>
+
+<app-custom-date-popup
+  [(visible)]="showCustomDatePopup"
+  [startDate]="customStartDate"
+  [endDate]="customEndDate"
+  (applyDates)="onCustomDateApplied($event)"
+>
+</app-custom-date-popup>

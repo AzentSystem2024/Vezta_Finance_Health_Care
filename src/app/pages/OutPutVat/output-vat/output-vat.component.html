@@ -1,0 +1,275 @@
+<div class="grid-container">
+  <dx-data-grid
+    #dataGrid
+    [dataSource]="CustomerListDataSource"
+    width="100%"
+    height="83vh"
+    [showBorders]="true"
+    [showRowLines]="true"
+    [allowColumnResizing]="false"
+    [showColumnLines]="true"
+    [columnAutoWidth]="true"
+    [groupPanel]="{ visible: true }"
+    [grouping]="{ autoExpandAll: false }"
+    [rowAlternationEnabled]="true"
+    rowAlternationInterval="2"
+    [remoteOperations]="false"
+    [summary]="summaryColumnsData"
+    [allowColumnReordering]="true"
+    [filterRow]="{ visible: false }"
+    id="dataGrid"
+    [headerFilter]="{ visible: false }"
+    [export]="{ enabled: true, formats: ['xlsx', 'pdf'] }"
+    [columnFixing]="{
+      enabled: true,
+      texts: { fix: 'Freeze', unfix: 'Unfreeze' },
+    }"
+    (onExporting)="onExporting($event)"
+    [loadPanel]="{ enabled: false, text: 'Loading...' }"
+     [loading]="isLoading"
+  >
+    <dxo-scrolling
+      mode="virtual"
+      rowRenderingMode="virtual"
+      columnRenderingMode="virtual"
+    >
+    </dxo-scrolling>
+
+    <dxo-load-panel
+  [enabled]="true">
+</dxo-load-panel>
+
+    <dxo-paging [pageSize]="10"></dxo-paging>
+    <dxo-export [enabled]="true" [formats]="['xlsx', 'pdf']"> </dxo-export>
+    <dxo-pager
+      [visible]="true"
+      [allowedPageSizes]="allowedPageSizes"
+      [displayMode]="displayMode"
+      [showPageSizeSelector]="true"
+      [showInfo]="true"
+      [showNavigationButtons]="true"
+    ></dxo-pager>
+
+    <dxo-toolbar>
+      <dxi-item location="before">
+        <div
+          class="grid-header"
+          style="
+            font-weight: 600;
+            font-size: 20px;
+            margin-left: 12px;
+            padding: -3px;
+            margin-right: 3px;
+          "
+        >
+          Output VAT
+        </div>
+      </dxi-item>
+
+      <dxi-item>
+        <dx-date-box
+          [width]="150"
+          label="From Date"
+          labelMode="floating"
+          [value]="financialYeaDate"
+          [displayFormat]="'dd-MM-yyyy'"
+          (onValueChanged)="onFromDateChange($event)"
+        >
+        </dx-date-box>
+      </dxi-item>
+      <dxi-item>
+        <dx-date-box
+          [width]="150"
+          label="To Date"
+          labelMode="floating"
+          [value]="defaultDate"
+          displayFormat="dd-MM-yyyy"
+          (onValueChanged)="onToDateChange($event)"
+        >
+        </dx-date-box>
+      </dxi-item>
+      <!-- Store -->
+      <dxi-item>
+        <dx-tag-box
+          label="Store"
+          labelMode="floating"
+          displayExpr="DESCRIPTION"
+          valueExpr="ID"
+          [items]="Store"
+          [searchEnabled]="true"
+          [(value)]="selectedStoreid"
+          [showSelectionControls]="true"
+          [maxDisplayedTags]="100"
+          [showMultiTagOnly]="true"
+          [multiline]="false"
+          [hint]="storeHint"
+          (onValueChanged)="updateStoreHint()"
+        ></dx-tag-box>
+      </dxi-item>
+
+      <dxi-item location="after">
+        <div class="toolbar-divider"></div>
+      </dxi-item>
+      <dxi-item>
+        <dx-button
+          text="Apply"
+          stylingMode="contained"
+          type="default"
+          [width]="100"
+          class="mt-2"
+          (onClick)="Load_Output_vat()"
+        >
+        </dx-button>
+      </dxi-item>
+
+      <dxi-item name="exportButton"></dxi-item>
+    </dxo-toolbar>
+
+    <dxo-grouping
+      [autoExpandAll]="false"
+      [contextMenuEnabled]="true"
+      [expandMode]="'rowClick'"
+    ></dxo-grouping>
+    <dxo-header-filter [visible]="true">
+      <dxo-search [enabled]="true"></dxo-search>
+    </dxo-header-filter>
+    <dxo-filter-row
+      [visible]="isFilterRowVisible"
+      [applyFilter]="auto"
+    ></dxo-filter-row>
+
+    <dxi-column
+      dataField="STORE_NAME"
+      caption="Store Name"
+      dataType="string"
+      [groupIndex]="0"
+     groupCellTemplate="groupTemplate"
+    ></dxi-column>
+    <div *dxTemplate="let data of 'groupTemplate'">
+  Store Name: {{ data.value }}
+</div>
+
+    <dxi-column
+      dataField="DOC_NO"
+      caption="Bill no"
+      dataType="string"
+
+    ></dxi-column>
+
+    <dxi-column caption="VAT Category" alignment="center">
+      <dxi-column
+        dataField="EXEMPTED"
+        caption="Exempted"
+        dataType="number"
+        format="#,##0.00"
+        alignment="right"
+      >
+      </dxi-column>
+
+      <dxi-column
+        dataField="ZERO_RATE"
+        caption="Zero"
+        dataType="number"
+        format="#,##0.00"
+        alignment="right"
+      >
+      </dxi-column>
+
+      <dxi-column
+        dataField="STANDARD_RATE"
+        caption="Standard Rate"
+        dataType="number"
+        format="#,##0.00"
+        alignment="right"
+      >
+      </dxi-column>
+    </dxi-column>
+
+    <dxi-column
+      dataField="TAX_AMOUNT"
+      caption="Tax Amount"
+      dataType="number"
+      format="#,##0.00"
+      alignment="right"
+    ></dxi-column>
+    <dxi-column
+      dataField="TOTAL"
+      caption="Total"
+      dataType="number"
+      format="#,##0.00"
+      alignment="right"
+    ></dxi-column>
+
+    <dxi-column
+      *ngIf="CustomerListDataSource.length > 0"
+      type="buttons"
+      [width]="100"
+    >
+      <dxi-button
+        hint="View"
+        icon="eyeopen"
+        text="View"
+        [onClick]="onViewClick.bind(this)"
+      ></dxi-button>
+    </dxi-column>
+  </dx-data-grid>
+</div>
+
+<!-- =========================view of credit note============================== -->
+
+<dx-popup
+  [(visible)]="isViewCreditNote"
+  [width]="'90vw'"
+  [height]="'90vh'"
+  title="Credit Note"
+  (onHiding)="handleClose()"
+>
+  <app-view-credit-note
+    [creditFormData]="selectedCreditNote"
+    (popupClosed)="handleClose()"
+  ></app-view-credit-note>
+</dx-popup>
+
+<!-- =====================invoice view screen=========================== -->
+
+<dx-popup
+  *ngIf="isViewInvoice"
+  [(visible)]="isViewInvoice"
+  [width]="'95vw'"
+  [height]="'100vh'"
+  title="Invoice"
+  (onHiding)="handleClose()"
+>
+  <!-- <ng-container *ngIf="isAddInvoice"> -->
+  <app-add-invoice-retail
+    [isEditing]="true"
+    [isReadOnlyMode]="true"
+    [EditingResponseData]="selectedInvoice"
+    (popupClosed)="handleClose()"
+  ></app-add-invoice-retail>
+  <!-- </ng-container> -->
+</dx-popup>
+
+<!-- //======================= coustom receipt=================== -->
+
+<dx-popup
+  [(visible)]="isViewReceipt"
+  [width]="'75vw'"
+  [height]="'100vh'"
+  [deferRendering]="false"
+  title="View Receipt"
+  (onHiding)="handleClose()"
+>
+  <app-view-customer-receipt
+    [receiprtFormData]="selectedReceipt"
+    (popupClosed)="handleClose()"
+  ></app-view-customer-receipt>
+</dx-popup>
+
+<dx-load-panel
+  [visible]="isLoading"
+  [showIndicator]="true"
+  [showPane]="true"
+  [shading]="true"
+  message="Loading data...">
+</dx-load-panel>

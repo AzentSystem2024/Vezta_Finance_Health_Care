@@ -1,0 +1,390 @@
+<dx-validation-group #journalVoucherGroup>
+  <div
+    class="invoice-wrapper"
+    style="
+      height: 85vh;
+      display: flex;
+      flex-direction: column;
+
+      box-sizing: border-box;
+    "
+  >
+    <div
+      class="stacked-toolbar-group"
+      style="
+        display: flex;
+        flex-direction: column;
+        gap: 5px;
+        margin-bottom: 6px;
+        margin-left: 20px;
+        margin-right: 20px;
+      "
+    >
+      <div
+        style="
+          display: flex;
+          justify-content: space-between;
+          align-items: flex-start;
+          gap: 10px;
+        "
+      >
+        <div style="display: flex; gap: 10px; margin-top: 15px">
+          <dx-date-box
+            label="Date"
+            type="date"
+            labelMode="floating"
+            [(value)]="invoiceFormData.TRANS_DATE"
+            [width]="200"
+            [displayFormat]="'dd-MM-yyyy'"
+            [readOnly]="true"
+          >
+          </dx-date-box>
+
+          <dx-text-box
+            label="Doc No. *"
+            labelMode="floating"
+            [(value)]="invoiceFormData.DOC_NO"
+            [readOnly]="true"
+            [width]="200"
+          >
+          </dx-text-box>
+        </div>
+        <!--  -->
+      </div>
+      <div
+        style="
+          display: flex;
+          justify-content: space-between;
+          align-items: flex-start;
+          gap: 10px;
+          width: 100%;
+        "
+      >
+        <!-- LEFT SIDE -->
+        <div style="display: flex; gap: 10px">
+          <dx-text-box
+            label="Reference No."
+            labelMode="floating"
+            [(value)]="invoiceFormData.REF_NO"
+            [readOnly]="isReadOnlyMode"
+            [width]="200"
+          >
+          </dx-text-box>
+          <dx-select-box
+            [dataSource]="filteredStoreList"
+            [(value)]="invoiceFormData.STORE_ID"
+            displayExpr="DESCRIPTION"
+            valueExpr="ID"
+            [width]="200"
+            label="Store"
+            labelMode="floating"
+            [readOnly]="isEditing"
+          >
+          </dx-select-box>
+        </div>
+
+        <!-- RIGHT SIDE -->
+        <div style="display: flex; align-items: flex-end; gap: 8px">
+          <dx-select-box
+            [dataSource]="customerList"
+            [(value)]="invoiceFormData.CUSTOMER_ID"
+            displayExpr="DESCRIPTION"
+            valueExpr="ID"
+            [width]="370"
+            label="Customer"
+            labelMode="floating"
+            [readOnly]="isEditing"
+          >
+          </dx-select-box>
+          <dx-button
+            icon="plus"
+            stylingMode="contained"
+            type="default"
+            [visible]="!isReadOnlyMode"
+            (onClick)="onAddRow()"
+            hint="Add Row"
+          >
+          </dx-button>
+        </div>
+      </div>
+    </div>
+    <div class="salary-grid-wrapper" style="padding: 0 20px">
+      <div class="grid-container">
+        <dx-data-grid
+          #itemsGridRef
+          [dataSource]="invoiceFormData.Details"
+          [showBorders]="true"
+          [showRowLines]="true"
+          [showColumnLines]="true"
+          [columnAutoWidth]="false"
+          [wordWrapEnabled]="false"
+          [rowAlternationEnabled]="true"
+          [headerFilter]="{ visible: true, allowSearch: true }"
+          [allowColumnReordering]="true"
+          [showColumnHeaders]="true"
+          [allowColumnResizing]="true"
+          [height]="'50vh'"
+          [width]="'auto'"
+          [columnResizingMode]="'nextColumn'"
+          [scrolling]="{ mode: 'virtual' }"
+          rowAlternationInterval="2"
+          [selection]="{ mode: 'single' }"
+          [editing]="{
+            mode: 'cell',
+            allowUpdating: true,
+            allowDeleting: !isReadOnlyMode,
+            allowAdding: false,
+
+            texts: { addRow: '' },
+          }"
+          (onRowRemoved)="onRowRemoved($event)"
+          (onEditorPreparing)="onEditorPreparing($event)"
+          (onRowPrepared)="onRowPrepared($event)"
+        >
+          <dxo-filter-builder [allowHierarchicalFields]="true">
+          </dxo-filter-builder>
+          <dxi-column
+            dataField="ITEM_ID"
+            caption="Item ID"
+            [allowEditing]="!isReadOnlyMode"
+            [visible]="false"
+          ></dxi-column>
+
+          <dxi-column
+            dataField="ITEM_CODE"
+            caption="Item Code"
+            [allowEditing]="!isReadOnlyMode"
+            [editorType]="'dxSelectBox'"
+            [lookup]="{
+              dataSource: itemsList,
+              valueExpr: 'ID',
+              displayExpr: 'DESCRIPTION',
+              searchEnabled: true,
+              searchMode: 'contains',
+              minSearchLength: 2,
+              showDataBeforeSearch: false,
+              paginate: true,
+              pageSize: 50,
+            }"
+          ></dxi-column>
+          <dxi-column
+            dataField="DESCRIPTION"
+            caption="Descriptiom"
+            [allowEditing]="!isReadOnlyMode"
+            [editorType]="'dxSelectBox'"
+            [lookup]="{
+              dataSource: itemsDescriptionList,
+              valueExpr: 'ID',
+              displayExpr: 'DESCRIPTION',
+              searchEnabled: true,
+              searchMode: 'contains',
+              minSearchLength: 2,
+              showDataBeforeSearch: false,
+              paginate: true,
+              pageSize: 50,
+            }"
+          ></dxi-column>
+
+          <dxi-column
+            dataField="UOM"
+            caption="UOM"
+            [allowEditing]="false"
+          ></dxi-column>
+
+          <dxi-column
+            dataField="PRICE"
+            [caption]="inclVAT ? 'Price(Incl. VAT)' : 'Price(Excl. VAT)'"
+            dataType="number"
+            [format]="{ type: 'fixedPoint', precision: 2 }"
+            [allowEditing]="!isReadOnlyMode"
+          ></dxi-column>
+
+          <dxi-column
+            dataField="QUANTITY"
+            caption="Quantity"
+            [allowEditing]="!isReadOnlyMode"
+          ></dxi-column>
+          <dxi-column
+            dataField="AMOUNT"
+            caption="Amount"
+            [allowEditing]="false"
+            dataType="number"
+            [format]="{ type: 'fixedPoint', precision: 2 }"
+            [calculateCellValue]="calculateAmount"
+          ></dxi-column>
+          <dxi-column
+            dataField="DISC_PERC"
+            caption="Disc %"
+            [allowEditing]="!isReadOnlyMode"
+          ></dxi-column>
+          <dxi-column
+            dataField="DISC_AMT"
+            caption="Disc Amount"
+            [allowEditing]="false"
+            [calculateCellValue]="calculateDiscAmt"
+          ></dxi-column>
+          <dxi-column
+            dataField="TAX_PERC"
+            [caption]="vatTitle + '%'"
+            [allowEditing]="false"
+          ></dxi-column>
+          <dxi-column
+            dataField="TAX_AMOUNT"
+            [caption]="vatTitle + ' Amount'"
+            [allowEditing]="false"
+            dataType="number"
+            [format]="{ type: 'fixedPoint', precision: 2 }"
+            [calculateCellValue]="calculateTax"
+            [visibleIndex]="inclVAT ? 999 : undefined"
+          ></dxi-column>
+
+          <dxi-column
+            dataField="TOTAL_AMOUNT"
+            caption="Total"
+            [allowEditing]="false"
+            dataType="number"
+            [format]="{ type: 'fixedPoint', precision: 2 }"
+            [calculateCellValue]="calculateTotal"
+          ></dxi-column>
+          <dxo-summary>
+            <dxi-total-item
+              column="AMOUNT"
+              summaryType="sum"
+              valueFormat="#,##0.00"
+              displayFormat="{0}"
+              alignment="right"
+            ></dxi-total-item>
+
+            <dxi-total-item
+              column="TAX_AMOUNT"
+              summaryType="sum"
+              valueFormat="#,##0.00"
+              displayFormat="{0}"
+              alignment="right"
+            ></dxi-total-item>
+            <dxi-total-item
+              column="DISC_AMT"
+              summaryType="sum"
+              valueFormat="#,##0.00"
+              displayFormat="{0}"
+              alignment="right"
+            ></dxi-total-item>
+
+            <dxi-total-item
+              column="TOTAL_AMOUNT"
+              summaryType="sum"
+              valueFormat="#,##0.00"
+              displayFormat="{0}"
+              alignment="right"
+              [allowEditing]="true"
+            ></dxi-total-item>
+          </dxo-summary>
+        </dx-data-grid>
+      </div>
+    </div>
+
+    <div class="invoice-summary" *ngIf="inclVAT">
+      <div class="summary-row">
+        <div class="summary-item">
+          <span>Total Excl. VAT</span>
+
+          <dx-number-box
+            [value]="totalExclVAT"
+            [readOnly]="true"
+            format="#,##0.00"
+            [width]="120"
+          >
+          </dx-number-box>
+        </div>
+
+        <div class="summary-item">
+          <span>{{ vatTitle }} Amount</span>
+
+          <dx-number-box
+            [value]="totalVAT"
+            [readOnly]="true"
+            format="#,##0.00"
+            [width]="120"
+          >
+          </dx-number-box>
+        </div>
+      </div>
+
+      <div class="summary-total">
+        <span>Total Incl. VAT</span>
+
+        <dx-number-box
+          [value]="totalInclVAT"
+          [readOnly]="true"
+          format="#,##0.00"
+          [width]="120"
+        >
+        </dx-number-box>
+      </div>
+    </div>
+    <div class="remarks-container">
+      <dx-text-box
+        label="Remarks"
+        labelMode="floating"
+        [(value)]="invoiceFormData.NARRATION"
+        [width]="300"
+        [readOnly]="isReadOnlyMode"
+      ></dx-text-box>
+    </div>
+    <div class="form-footer-wrapper">
+      <!-- RIGHT SECTION -->
+      <div class="right-section">
+        <div class="approve-container" *ngIf="canApprove">
+          <dx-check-box
+            text="Approve"
+            [(value)]="invoiceFormData.IS_APPROVED"
+            [visible]="!isReadOnlyMode && !isApproveMode && !isVerifyMode"
+          ></dx-check-box>
+        </div>
+
+        <dx-button
+          #saveButtonRef
+          text="PDF"
+          [visible]="isReadOnlyMode || invoiceFormData.IS_APPROVED"
+          (onClick)="openPDF()"
+          stylingMode="contained"
+          type="default"
+          [width]="120"
+        ></dx-button>
+
+        <dx-button
+          text="Cancel"
+          stylingMode="outlined"
+          type="normal"
+          (onClick)="cancel()"
+        ></dx-button>
+
+        <dx-button
+          #saveButtonRef
+          [text]="
+            isSaving
+              ? invoiceFormData.IS_APPROVED
+                ? 'Committing...'
+                : 'Saving...'
+              : invoiceFormData.IS_APPROVED
+                ? 'Save'
+                : 'Save'
+          "
+          [disabled]="isSaving"
+          [visible]="!isReadOnlyMode"
+          (onClick)="saveInvoice()"
+          stylingMode="contained"
+          type="default"
+        ></dx-button>
+
+        <!-- <dx-button
+              #saveButtonRef
+              [text]="invoiceFormData.IS_APPROVED ? 'Commit' : 'Save'"
+              (onClick)="saveInvoice()"
+              stylingMode="contained"
+              type="default"
+            ></dx-button> -->
+      </div>
+    </div>
+  </div>
+</dx-validation-group>

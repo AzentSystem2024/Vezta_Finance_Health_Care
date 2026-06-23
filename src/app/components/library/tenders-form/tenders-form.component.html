@@ -1,0 +1,211 @@
+<dx-form class="plain-styled-form" [colCount]="1">
+  <dxi-item itemType="group" [colCount]="2">
+    <dxi-item>
+      <div *dxTemplate>
+        <dx-text-box
+          label="Code"
+          [(value)]="newTender.CODE"
+          width="100"
+          labelMode="floating"
+        >
+          <dx-validator>
+            <dxi-validation-rule type="required" message="Code is required">
+            </dxi-validation-rule>
+            <dxi-validation-rule
+              type="pattern"
+              [pattern]="'^[a-zA-Z0-9]+$'"
+              message="Code should be alphanumeric only"
+            ></dxi-validation-rule>
+
+            <dxi-validation-rule
+              type="custom"
+              [validationCallback]="validateTenderCode"
+              message="Code already exists"
+            ></dxi-validation-rule>
+          </dx-validator>
+        </dx-text-box>
+      </div>
+    </dxi-item>
+    <dxi-item Align="Right">
+      <dx-check-box
+        [(value)]="newTender.IS_INACTIVE"
+        [elementAttr]="{ 'aria-label': 'checked' }"
+        text="Inactive"
+      ></dx-check-box>
+    </dxi-item>
+  </dxi-item>
+
+  <dxi-item itemType="group" [colCount]="1">
+    <dxi-item>
+      <div *dxTemplate>
+        <dx-text-box
+          label="Description"
+          [(value)]="newTender.DESCRIPTION"
+          labelMode="floating"
+        >
+          <dx-validator>
+            <dxi-validation-rule
+              type="required"
+              message="Description is required"
+            >
+            </dxi-validation-rule>
+            <dxi-validation-rule
+              type="custom"
+              [validationCallback]="validateTenderDescription"
+              message="Code already exists"
+            ></dxi-validation-rule>
+          </dx-validator>
+        </dx-text-box>
+      </div>
+    </dxi-item>
+  </dxi-item>
+  <dxi-item itemType="group" [colCount]="1">
+    <dxi-item>
+      <div *dxTemplate>
+        <dx-text-box
+          [(value)]="newTender.ARABIC_DESCRIPTION"
+          [rtlEnabled]="true"
+          labelMode="floating"
+          label="Arabic Description"
+        >
+          <dx-validator>
+            <dxi-validation-rule
+              type="required"
+              message="Arabic Description is required"
+            >
+            </dxi-validation-rule>
+          </dx-validator>
+        </dx-text-box>
+      </div>
+    </dxi-item>
+  </dxi-item>
+
+  <dxi-item itemType="group" [colCount]="2">
+    <dxi-item>
+      <div *dxTemplate>
+        <dx-select-box
+          label="Tender Type"
+          [items]="TenderTypeDropdownData"
+          displayExpr="DESCRIPTION"
+          valueExpr="ID"
+          [(value)]="newTender.TENDER_TYPE"
+          placeholder="Select Tender type"
+          labelMode="floating"
+          [searchEnabled]="true"
+        >
+          <dx-validator>
+            <dxi-validation-rule
+              type="required"
+              message="Tender type is required"
+            >
+            </dxi-validation-rule>
+          </dx-validator>
+        </dx-select-box>
+      </div>
+    </dxi-item>
+    <dxi-item>
+      <div *dxTemplate>
+        <dx-select-box
+          label="Currency"
+          [items]="VATRuleDropdownData"
+          displayExpr="DESCRIPTION"
+          valueExpr="ID"
+          [(value)]="newTender.CURRENCY_ID"
+          placeholder="Select Currency"
+          labelMode="floating"
+          [disabled]="newTender.TENDER_TYPE != 1"
+          [searchEnabled]="true"
+        >
+          <dx-validator>
+            <dxi-validation-rule type="required" message="Currency is required">
+            </dxi-validation-rule>
+          </dx-validator>
+        </dx-select-box>
+      </div>
+    </dxi-item>
+  </dxi-item>
+  <dxi-item itemType="group" [colCount]="1">
+    <dxi-item>
+      <dx-select-box
+        label="Ledger"
+        [items]="Ledger_list"
+        displayExpr="DESCRIPTION"
+        valueExpr="ID"
+        [(value)]="newTender.AC_HEAD_ID"
+        placeholder="Select Ledger"
+        labelMode="floating"
+        [disabled]="newTender.TENDER_TYPE == 4"
+        [searchEnabled]="true"
+      >
+        <dx-validator>
+          <dxi-validation-rule
+            type="required"
+            message="Ledger order is required"
+            [validationCallback]="validateLedger"
+          >
+          </dxi-validation-rule>
+        </dx-validator>
+      </dx-select-box>
+    </dxi-item>
+  </dxi-item>
+  <dxi-item itemType="group" [colCount]="2">
+    <!-- Allow Opening -->
+    <dxi-item>
+      <dx-check-box
+        [(value)]="allowOpening"
+        (onValueChanged)="onValueChangedOpening($event.value)"
+        text="Allow Opening"
+        [visible]="IsHQApp"
+      >
+      </dx-check-box>
+    </dxi-item>
+
+    <!-- Allow Declaration -->
+    <dxi-item>
+      <dx-check-box
+        [(value)]="allowDeclaration"
+        (onValueChanged)="onValueChangedDeclaration($event.value)"
+        [elementAttr]="{
+          'aria-label': allowDeclaration ? 'Checked' : 'Unchecked',
+        }"
+        text="Allow Declaration"
+        [visible]="IsHQApp"
+      >
+      </dx-check-box>
+    </dxi-item>
+    <!-- Display Order -->
+    <dxi-item class="mt-2">
+      <dx-number-box
+        label="Display Order"
+        [(value)]="newTender.DISPLAY_ORDER"
+        width="100%"
+        labelMode="floating"
+        [min]="0"
+        [showSpinButtons]="true"
+        [visible]="IsHQApp"
+      >
+        <dx-validator>
+          <dxi-validation-rule
+            type="required"
+            message="Display order is required"
+          >
+          </dxi-validation-rule>
+        </dx-validator>
+      </dx-number-box>
+    </dxi-item>
+
+    <!-- Additional Information -->
+    <dxi-item class="mt-2">
+      <dx-check-box
+        [(value)]="additionalInformationRequired"
+        (onValueChanged)="onValueChangedInformation($event.value)"
+        [elementAttr]="{
+          'aria-label': additionalInformationRequired ? 'Checked' : 'Unchecked',
+        }"
+        text="Additional Information Required"
+        [visible]="IsHQApp"
+      >
+      </dx-check-box>
+    </dxi-item>
+  </dxi-item>
+</dx-form>

@@ -1,0 +1,343 @@
+<div class="view-wrapper list-page">
+  <div class="grid-container">
+    <dx-data-grid
+      #dataGrid
+      noDataText="No data available"
+      [width]="'100%'"
+      [height]="'82vh'"
+      [loadPanel]="{
+        enabled: true,
+        text: 'Loading...',
+        showIndicator: true,
+        showPane: true,
+      }"
+      class="grid theme-dependent"
+      [dataSource]="Depreciation_List"
+      [showBorders]="true"
+      [columnAutoWidth]="false"
+      [wordWrapEnabled]="false"
+      [rowAlternationEnabled]="true"
+      [allowColumnReordering]="true"
+      [showRowLines]="true"
+      [showColumnLines]="true"
+      [showColumnHeaders]="true"
+      [columnAutoWidth]="true"
+      [allowColumnResizing]="true"
+      [columnResizingMode]="'nextColumn'"
+      [headerFilter]="{ visible: true, allowSearch: true }"
+      [scrolling]="{ mode: 'virtual' }"
+      rowAlternationInterval="2"
+      [selection]="{ mode: 'single' }"
+      focusStateEnabled="false"
+      (onEditingStart)="onEditDepreciation($event)"
+      (onRowRemoving)="delete_Depreciation_Data($event)"
+    >
+      <dxo-editing
+        mode="popup"
+        [allowUpdating]="canEdit"
+        [allowDeleting]="canDelete"
+      ></dxo-editing>
+      <dxo-export
+        [enabled]="true"
+        [allowExportSelectedData]="false"
+        [formats]="['xlsx']"
+      >
+      </dxo-export>
+      <dxo-paging [pageSize]="10"></dxo-paging>
+      <dxo-pager
+        [visible]="true"
+        [allowedPageSizes]="allowedPageSizes"
+        [displayMode]="displayMode"
+        [showPageSizeSelector]="showPageSizeSelector"
+        [showInfo]="true"
+        [showNavigationButtons]="true"
+      ></dxo-pager>
+      <dxo-load-panel [showPane]="false"></dxo-load-panel>
+      <dxo-scrolling mode="standard"></dxo-scrolling>
+
+      <dxo-toolbar>
+        <dxi-item location="before">
+          <div
+            class="grid-header"
+            style="
+              font-weight: 600;
+              font-size: 20px;
+              margin-left: 12px;
+              padding: -3px;
+              margin-right: 3px;
+            "
+          >
+            Depreciation
+          </div>
+        </dxi-item>
+        <dxi-item location="after" locateInMenu="auto"> </dxi-item>
+        <dxi-item location="after" locateInMenu="auto">
+          <dx-select-box
+            [dataSource]="dateRanges"
+            [displayExpr]="'label'"
+            valueExpr="value"
+            [(value)]="selectedDateRange"
+            (onValueChanged)="onDateRangeChanged($event)"
+            [searchEnabled]="true"
+            [width]="250"
+            placeholder="Select Date Range"
+          >
+            <div *dxTemplate="let item of 'item'">
+              {{ item.value === "custom" ? "Custom" : item.label }}
+                      
+            </div>
+          </dx-select-box>
+        </dxi-item>
+        <dxi-item
+          location="after"
+          locateInMenu="auto"
+          widget="dxButton"
+          [options]="searchButtonOptions"
+        ></dxi-item>
+
+        <dxi-item
+          location="after"
+          locateInMenu="auto"
+          widget="dxButton"
+          [options]="refreshButtonOptions"
+        ></dxi-item>
+        <dxi-item location="after" style="margin-top: 3px">
+          <div class="toolbar-divider"></div>
+        </dxi-item>
+        <dxi-item
+          name="exportButton"
+          location="after"
+          cssClass="export-btn"
+        ></dxi-item>
+
+        <dxi-item
+          *ngIf="canAdd"
+          location="after"
+          locateInMenu="auto"
+          widget="dxButton"
+          [options]="addButtonOptions"
+        ></dxi-item>
+        <!-- <dxi-item location="after" locateInMenu="auto">
+          <dx-button
+            icon="plus"
+            hint="Add"
+            type="default"
+            stylingMode="contained"
+  (onClick)="addPacking()"
+          ></dx-button>
+        </dxi-item> -->
+      </dxo-toolbar>
+      <dxi-column
+        dataField="DOC_NO"
+        [width]="150"
+        caption="Doc.No"
+      ></dxi-column>
+      <dxi-column
+        dataField="DEPR_DATE"
+        [width]="150"
+        caption="Depreciation Date"
+        dataType="date"
+        [format]="'dd/MM/yy'"
+      ></dxi-column>
+
+      <dxi-column dataField="NARRATION" caption="Narration"></dxi-column>
+      <!-- <dxi-column dataField="PackingName" caption="Location"></dxi-column> -->
+      <dxi-column
+        dataField="AMOUNT"
+        caption="Net Amount"
+        [width]="150"
+        [format]="{ type: 'fixedPoint', precision: 2 }"
+      ></dxi-column>
+      <!--  -->
+      <!-- <dxi-column
+        dataField="TRANS_STATUS"
+        caption="Status"
+        [width]="100"
+        alignment="center"
+        cellTemplate="statusCellTemplate"
+      ></dxi-column>
+
+
+      <div *dxTemplate="let cellData of 'statusCellTemplate'">
+        <i
+          class="fas fa-flag"
+          [ngClass]="getStatusFlagClass(cellData.value)"
+          [attr.title]="cellData.value == '1' ? 'Open' : 'Approve'"
+          style="margin-left: 10px; cursor: default"
+        ></i>
+              
+      </div>
+
+      <dxi-column type="buttons" [buttons]="gridButtons"> </dxi-column> -->
+
+      <dxi-column
+        caption="Status"
+        dataField="TRANS_STATUS"
+        [width]="80"
+        [cellTemplate]="statusCellRender"
+        [allowHeaderFiltering]="true"
+        [headerFilter]="{
+          dataSource: getStatusFilterData,
+          encodeHtml: false,
+        }"
+      >
+      </dxi-column>
+      <!-- <dxi-column type="buttons" [buttons]="gridButtons"> </dxi-column> -->
+      <dxi-column
+        type="buttons"
+        caption="Actions"
+        [width]="140"
+        cellTemplate="actionTemplate"
+      >
+      </dxi-column>
+      <div *dxTemplate="let cellData of 'actionTemplate'">
+        <!-- Edit -->
+        <i
+          *ngIf="canEdit"
+          class="dx-icon dx-icon-edit"
+          [style.opacity]="
+            cellData.data.TRANS_STATUS === '2' ||
+            cellData.data.TRANS_STATUS === '5'
+              ? '0.4'
+              : '1'
+          "
+          [style.pointer-events]="
+            cellData.data.TRANS_STATUS === '2' ||
+            cellData.data.TRANS_STATUS === '5'
+              ? 'none'
+              : 'auto'
+          "
+          style="cursor: pointer; margin-right: 10px"
+          title="Edit"
+          (click)="onEditDepreciation({ data: cellData.data, cancel: false })"
+        ></i>
+
+        <!-- Delete -->
+        <i
+          *ngIf="canDelete"
+          class="dx-icon dx-icon-trash"
+          [style.opacity]="
+            cellData.data.TRANS_STATUS === '2' ||
+            cellData.data.TRANS_STATUS === '5'
+              ? '0.4'
+              : '1'
+          "
+          [style.pointer-events]="
+            cellData.data.TRANS_STATUS === '2' ||
+            cellData.data.TRANS_STATUS === '5'
+              ? 'none'
+              : 'auto'
+          "
+          style="cursor: pointer; margin-right: 10px"
+          title="Delete"
+          (click)="
+            delete_Depreciation_Data({ data: cellData.data, cancel: false })
+          "
+        ></i>
+
+        <!-- Verify -->
+        <span
+          *ngIf="
+            (cellData.data.TRANS_STATUS === '2' && canApprove) ||
+            (cellData.data.TRANS_STATUS !== '2' && canVerify)
+          "
+          style="
+            position: relative;
+            display: inline-block;
+            width: 18px;
+            height: 18px;
+            margin-left: 10px;
+            cursor: pointer;
+            vertical-align: middle;
+          "
+          [title]="
+            cellData.data.TRANS_STATUS === '5'
+              ? 'Approved'
+              : cellData.data.TRANS_STATUS === '2'
+                ? 'Approve'
+                : 'Verify'
+          "
+          (click)="onVerifyClick({ row: { data: cellData.data } })"
+        >
+          <!-- Blue badge -->
+          <i
+            class="fas fa-certificate"
+            [style.color]="
+              cellData.data.TRANS_STATUS === '5'
+                ? '#10B981'
+                : cellData.data.TRANS_STATUS === '2'
+                  ? '#0073D8'
+                  : '#FFA500'
+            "
+            style="font-size: 18px; position: absolute; top: 0; left: 0"
+          ></i>
+
+          <!-- White tick -->
+          <i
+            class="fas fa-check"
+            style="
+              color: white;
+              font-size: 7px;
+              position: absolute;
+              top: 5px;
+              left: 5px;
+              pointer-events: none;
+            "
+          ></i>
+        </span>
+      </div>
+    </dx-data-grid>
+  </div>
+</div>
+
+<!-- <dx-popup
+  [(visible)]="isAddInvoice"
+  [width]="'90vw'"
+  [height]="'85vh'"
+  title="New Invoice"
+  (onHiding)="handleClose()"
+>
+  <app-add-invoice (popupClosed)="handleClose()"></app-add-invoice>
+</dx-popup> -->
+
+<dx-popup
+  [(visible)]="AddDepreciationPopupVisible"
+  [width]="'100vw'"
+  [height]="'auto'"
+  title="New Depreciation"
+  (onHiding)="handleClose()"
+>
+  <!-- <app-fixed-asstes-add
+    (popupClosed)="handleClose()"
+  ></app-fixed-asstes-add> -->
+
+  <app-depreciation-add
+    (popupClosed)="handleClose()"
+    [canApprove]="canApprove"
+  ></app-depreciation-add>
+</dx-popup>
+
+<dx-popup
+  [(visible)]="EditDepreciationPopupVisible"
+  [width]="'100vw'"
+  [height]="'auto'"
+  title="Depreciation"
+  (onHiding)="handleClose()"
+>
+  <app-depreciation-edit
+    [DepreciationId]="selectedDepreciation"
+    [SelectDepreciationData]="Selected_Depreciation_data"
+    (popupClosed)="handleClose()"
+    [canApprove]="canApprove"
+    [status]="StatusType"
+    [statusId]="statusId"
+  ></app-depreciation-edit>
+</dx-popup>
+
+<app-custom-date-popup
+  [(visible)]="showCustomDatePopup"
+  [startDate]="customStartDate"
+  [endDate]="customEndDate"
+  (applyDates)="onCustomDateApplied($event)"
+>
+</app-custom-date-popup>

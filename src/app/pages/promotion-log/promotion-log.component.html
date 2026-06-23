@@ -1,0 +1,333 @@
+<div class="view-wrapper list-page">
+  <div>
+    <dx-data-grid
+      #dataGrid
+      [width]="'100%'"
+      [height]="'530px'"
+      class="grid theme-dependent"
+      [dataSource]="promotionLogList"
+      [showBorders]="true"
+      [columnAutoWidth]="false"
+      [wordWrapEnabled]="false"
+      [rowAlternationEnabled]="true"
+      rowAlternationInterval="2"
+      (onEditingStart)="openEditingStart($event)"
+      (onRowRemoving)="onRowRemoving($event)"
+      [selection]="{ mode: 'single' }"
+    >
+      <dxo-paging [pageSize]="10"></dxo-paging>
+      <dxo-pager
+        [visible]="true"
+        [allowedPageSizes]="allowedPageSizes"
+        [displayMode]="displayMode"
+        [showPageSizeSelector]="showPageSizeSelector"
+        [showInfo]="true"
+        [showNavigationButtons]="true"
+      ></dxo-pager>
+      <dxo-load-panel [showPane]="false"></dxo-load-panel>
+      <dxo-scrolling mode="standard"></dxo-scrolling>
+      <dxo-filter-row
+        [visible]="isFilterRowVisible"
+        [applyFilter]="auto"
+      ></dxo-filter-row>
+      <dxo-header-filter [visible]="isFilterOpened">
+        <dxo-search [enabled]="true"></dxo-search>
+      </dxo-header-filter>
+      <dxo-filter-panel [visible]="isFilterOpened"></dxo-filter-panel>
+      <dxo-filter-builder [allowHierarchicalFields]="true">
+      </dxo-filter-builder>
+      <dxo-scrolling
+        mode="standard"
+        columnRenderingMode="virtual"
+      ></dxo-scrolling>
+      <dxo-editing
+        mode="popup"
+        [allowUpdating]="true"
+        [allowDeleting]="true"
+      ></dxo-editing>
+      <dxo-search-panel
+        [visible]="true"
+        [highlightCaseSensitive]="false"
+      ></dxo-search-panel>
+      <dxo-header-filter [visible]="showHeaderFilter"></dxo-header-filter>
+      <dxo-paging [pageSize]="10"></dxo-paging>
+      <dxo-toolbar>
+        <dxi-item location="before">
+          <div class="grid-header">Promotion</div>
+        </dxi-item>
+        <dxi-item
+          location="after"
+          locateInMenu="auto"
+          widget="dxButton"
+          [options]="refreshButtonOptions"
+        ></dxi-item>
+        <dxi-item
+          *ngIf="canAdd"
+          location="after"
+          locateInMenu="auto"
+          widget="dxButton"
+          [options]="addButtonOptions"
+        >
+        </dxi-item>
+      </dxo-toolbar>
+
+      <dxi-column
+        dataField="WS_NO"
+        caption="Document No."
+        [width]="'150'"
+        [allowEditing]="false"
+        [visible]="true"
+      ></dxi-column>
+      <dxi-column
+        dataField="WS_DATE"
+        caption="Document Date"
+        [width]="'180'"
+        [allowEditing]="false"
+        dataType="date"
+        format="dd-MM-yyyy"
+      ></dxi-column>
+      <dxi-column
+        dataField="NARRATION"
+        caption="Remarks"
+        [allowEditing]="false"
+      ></dxi-column>
+      <!--       
+      <dxi-column
+        dataField="Status"
+        caption="Status"
+        [width]="'150'"
+        [allowEditing]="false"
+        cellTemplate="statusCellTemplate"
+      ></dxi-column>
+      <div *dxTemplate="let cellData of 'statusCellTemplate'">
+        <i
+          class="fas fa-flag"
+          [ngClass]="getStatusFlagClass(cellData.value)"
+          [attr.title]="cellData.value"
+        ></i>
+      </div>
+      <dxi-column
+        type="buttons"
+        [width]="300"
+        [buttons]="allButtons"
+      ></dxi-column>
+      <div *dxTemplate="let data of 'verifyTemplate'">
+        <span style="margin-right: 8px">
+          <i
+            class="fas fa-certificate"
+            style="color: #ffa500; font-size: 18px"
+          ></i>
+
+          <i
+            class="fas fa-check"
+            style="
+              color: white;
+              font-size: 7px;
+              position: absolute;
+              top: 5px;
+              left: 5px;
+              pointer-events: none;
+            "
+          ></i>
+        </span>
+      </div>
+
+      <div *dxTemplate="let data of 'ApproveTemplate'">
+        <span style="margin-right: 8px">
+          <i
+            class="fas fa-certificate"
+            style="color: #0073d8; font-size: 18px"
+          ></i>
+
+          <i
+            class="fas fa-check"
+            style="
+              color: white;
+              font-size: 7px;
+              position: absolute;
+              top: 5px;
+              left: 5px;
+              pointer-events: none;
+            "
+          ></i>
+        </span>
+      </div>
+
+      <div *dxTemplate="let data of 'ViewTemplate'">
+   
+          <i
+            class="fas fa-certificate"
+            style="color: #10b981; font-size: 18px"
+          ></i>
+
+          <i
+            class="fas fa-check"
+            style="
+              color: white;
+              font-size: 7px;
+              position: absolute;
+              top: 5px;
+              left: 5px;
+              pointer-events: none;
+            "
+          ></i>
+      </div> -->
+
+      <dxi-column
+        caption="Status"
+        dataField="Status"
+        [width]="80"
+        [cellTemplate]="statusCellRender"
+        [allowHeaderFiltering]="true"
+        [headerFilter]="{
+          dataSource: getStatusFilterData,
+          encodeHtml: false,
+        }"
+      >
+      </dxi-column>
+      <!-- <dxi-column type="buttons" [buttons]="gridButtons"> </dxi-column> -->
+      <dxi-column
+        type="buttons"
+        caption="Actions"
+        [width]="140"
+        cellTemplate="actionTemplate"
+      >
+      </dxi-column>
+      <div *dxTemplate="let cellData of 'actionTemplate'">
+        <!-- Edit -->
+        <i
+          *ngIf="canEdit"
+          class="dx-icon dx-icon-edit"
+          [style.opacity]="
+            cellData.data.Status === 'Verified' ||
+            cellData.data.Status === 'Approved'
+              ? '0.4'
+              : '1'
+          "
+          [style.pointer-events]="
+            cellData.data.Status === 'Verified' ||
+            cellData.data.Status === 'Approved'
+              ? 'none'
+              : 'auto'
+          "
+          style="cursor: pointer; margin-right: 10px"
+          title="Edit"
+          (click)="openEditingStart({ data: cellData.data, cancel: false })"
+        ></i>
+
+        <!-- Delete -->
+        <i
+          *ngIf="canDelete"
+          class="dx-icon dx-icon-trash"
+          [style.opacity]="
+            cellData.data.Status === 'Verified' ||
+            cellData.data.Status === 'Approved'
+              ? '0.4'
+              : '1'
+          "
+          [style.pointer-events]="
+            cellData.data.Status === 'Verified' ||
+            cellData.data.Status === 'Approved'
+              ? 'none'
+              : 'auto'
+          "
+          style="cursor: pointer; margin-right: 10px"
+          title="Delete"
+          (click)="onRowRemoving({ data: cellData.data, cancel: false })"
+        ></i>
+
+        <!-- Verify -->
+        <span
+          *ngIf="
+            (cellData.data.Status === 'Verified' && canApprove) ||
+            (cellData.data.Status !== 'Verified' && canVerify)
+          "
+          style="
+            position: relative;
+            display: inline-block;
+            width: 18px;
+            height: 18px;
+            margin-left: 10px;
+            cursor: pointer;
+            vertical-align: middle;
+          "
+          [title]="
+            cellData.data.Status === 'Approved'
+              ? 'Approved'
+              : cellData.data.Status === 'Verified'
+                ? 'Approve'
+                : 'Verify'
+          "
+          (click)="onVerifyClick({ row: { data: cellData.data } })"
+        >
+          <!-- Blue badge -->
+          <i
+            class="fas fa-certificate"
+            [style.color]="
+              cellData.data.Status === 'Approved'
+                ? '#10B981'
+                : cellData.data.Status === 'Verified'
+                  ? '#0073D8'
+                  : '#FFA500'
+            "
+            style="font-size: 18px; position: absolute; top: 0; left: 0"
+          ></i>
+
+          <!-- White tick -->
+          <i
+            class="fas fa-check"
+            style="
+              color: white;
+              font-size: 7px;
+              position: absolute;
+              top: 5px;
+              left: 5px;
+              pointer-events: none;
+            "
+          ></i>
+        </span>
+      </div>
+    </dx-data-grid>
+  </div>
+</div>
+<!-- //===  Insert Popup==================== -->
+<dx-popup
+  [(visible)]="isAddPopup"
+  [width]="'80vw'"
+  [height]="'90vh'"
+  title="Add Promotion"
+  (onHiding)="handleClose()"
+>
+  <app-promotion (popupClosed)="handleClose()"></app-promotion>
+</dx-popup>
+
+<dx-popup
+  [(visible)]="editPackPopupOpened"
+  [width]="'80vw'"
+  [height]="'90vh'"
+  title="Update Promotion"
+  (onHiding)="handleClose()"
+>
+  <div *dxTemplate="let data of 'content'">
+    <app-edit-promotion
+      (popupClosed)="handleClose()"
+      [selectedData]="selectedPromotion"
+      [status]="StatusType"
+    ></app-edit-promotion>
+  </div>
+</dx-popup>
+
+<dx-popup
+  [(visible)]="ViewPopupOpened"
+  [width]="'80vw'"
+  [height]="'90vh'"
+  title="View Promotion"
+  (onHiding)="handleClose()"
+>
+  <div *dxTemplate="let data of 'content'">
+    <app-view-promotion-wizard
+      (popupClosed)="handleClose()"
+      [selectedData]="selectedPromotion"
+    ></app-view-promotion-wizard>
+  </div>
+</dx-popup>

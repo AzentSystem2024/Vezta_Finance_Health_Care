@@ -1,0 +1,117 @@
+<div class="view-wrapper list-page">
+  <dx-data-grid
+    class="grid theme-dependent"
+    [dataSource]="ItemProperty1DataSource"
+    [rowAlternationEnabled]="true"
+    rowAlternationInterval="2"
+    [showBorders]="true"
+    (onRowRemoving)="onRowRemoving($event)"
+    [showColumnLines]="true"
+    [width]="'100%'"
+    [height]="'75vh'"
+    [scrolling]="{ mode: 'virtual' }"
+    [allowColumnReordering]="true"
+    [allowColumnResizing]="true"
+    (onExporting)="onExporting($event)"
+    (onEditingStart)="OnEditingStartItem1($event)"
+  >
+    <dxo-filter-row [visible]="isFilterRowVisible"></dxo-filter-row>
+
+    <dxo-header-filter [visible]="showHeaderFilter"></dxo-header-filter>
+
+    <dxo-export [enabled]="true" [formats]="['xlsx', 'pdf']"> </dxo-export>
+
+    <dxo-paging [pageSize]="10"></dxo-paging>
+    <dxo-pager
+      [visible]="true"
+      [allowedPageSizes]="allowedPageSizes"
+      [displayMode]="displayMode"
+      [showPageSizeSelector]="showPageSizeSelector"
+      [showInfo]="true"
+      [showNavigationButtons]="true"
+    ></dxo-pager>
+    <dxo-editing mode="popup" [allowUpdating]="canEdit" [allowDeleting]="canDelete">
+      <dxo-popup
+        title="Edit {{ itemlabel }}"
+        [showTitle]="true"
+        [width]="450"
+        [height]="300"
+      ></dxo-popup>
+      <dxo-form [colCount]="1"> </dxo-form>
+    </dxo-editing>
+
+    <dxo-toolbar>
+      <dxi-item location="before">
+        <div class="grid-header">{{ ITEM_PROPERTY1 }}</div>
+      </dxi-item>
+
+      <dxi-item
+        location="after"
+        locateInMenu="auto"
+        widget="dxButton"
+        [options]="searchButtonOptions"
+      ></dxi-item>
+
+      <dxi-item
+        location="after"
+        locateInMenu="auto"
+        widget="dxButton"
+        [options]="refreshButtonOptions"
+      ></dxi-item>
+      <!-- Divider -->
+      <dxi-item location="after">
+        <div class="toolbar-divider"></div>
+      </dxi-item>
+      <dxi-item
+        name="exportButton"
+        location="after"
+        cssClass="export-btn"
+      ></dxi-item>
+
+      <!-- Add -->
+      <dxi-item
+        location="after"
+        widget="dxButton"
+        *ngIf="canAdd"
+        [options]="addButtonOptions"
+      ></dxi-item>
+    </dxo-toolbar>
+
+    <dxi-column dataField="CODE" caption="Code">
+      <dxi-validation-rule type="required" message="Code is required">
+        <dxi-validation-rule type="pattern" message="Code is required">
+        </dxi-validation-rule>
+      </dxi-validation-rule>
+    </dxi-column>
+    <dxi-column dataField="DESCRIPTION" caption="Description">
+      <dxi-validation-rule type="required" message="Description is required">
+        <dxi-validation-rule type="pattern" message="Description is required">
+        </dxi-validation-rule>
+      </dxi-validation-rule>
+    </dxi-column>
+  </dx-data-grid>
+</div>
+<form-popup
+  height="35vh"
+  [(visible)]="isItemProperty1PopupOpened"
+  (save)="onClickSaveItemProperty1()"
+  titleText="New Size"
+  [showApprove]="false"
+>
+  <app-item-property1-form
+    [companyId]="selected_Company_id"
+  ></app-item-property1-form>
+</form-popup>
+<dx-popup
+  [(visible)]="isEditItemProperty1PopupOpened"
+  (save)="onClickSaveItemProperty1()"
+  title="Edit Size"
+  height="30vh"
+  width="30vw"
+>
+  <app-item-property1-edit
+    [selectedData]="selected_data"
+    (formClosed)="handleClose()"
+  >
+  </app-item-property1-edit>
+</dx-popup>

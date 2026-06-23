@@ -1,0 +1,410 @@
+<div class="view-wrapper list-page">
+  <div class="grid-container">
+    <dx-data-grid
+      #dataGrid
+      noDataText="No data available"
+      [width]="'100%'"
+      [height]="'82vh'"
+      [loadPanel]="{
+        enabled: true,
+        text: 'Loading...',
+        showIndicator: true,
+        showPane: true,
+      }"
+      class="grid theme-dependent"
+      [dataSource]="filteredJournalVoucherList"
+      [showBorders]="true"
+      [showRowLines]="true"
+      [showColumnLines]="true"
+      [columnAutoWidth]="false"
+      [wordWrapEnabled]="false"
+      [rowAlternationEnabled]="true"
+      [allowColumnReordering]="true"
+      [showColumnHeaders]="true"
+      [columnAutoWidth]="true"
+      [allowColumnResizing]="true"
+      [columnResizingMode]="'nextColumn'"
+      [filterRow]="{ visible: false }"
+      [headerFilter]="{ visible: false }"
+      [scrolling]="{ mode: 'virtual' }"
+      rowAlternationInterval="2"
+      [selection]="{ mode: 'single' }"
+      focusStateEnabled="false"
+      (onExporting)="onExporting($event)"
+      (onEditingStart)="onEditDebitNote($event)"
+      (onRowRemoving)="onDeleteDebitNote($event)"
+      (onCellPrepared)="onCellPrepared($event)"
+    >
+      <dxo-editing
+        mode="popup"
+        [allowUpdating]="canEdit"
+        [allowDeleting]="canDelete"
+      ></dxo-editing>
+      <dxo-export
+        [enabled]="true"
+        [allowExportSelectedData]="false"
+        [formats]="['xlsx']"
+      >
+      </dxo-export>
+      <dxo-paging [pageSize]="10"></dxo-paging>
+      <dxo-pager
+        [visible]="true"
+        [allowedPageSizes]="allowedPageSizes"
+        [displayMode]="displayMode"
+        [showPageSizeSelector]="showPageSizeSelector"
+        [showInfo]="true"
+        [showNavigationButtons]="true"
+      ></dxo-pager>
+      <dxo-load-panel [showPane]="false"></dxo-load-panel>
+      <dxo-scrolling mode="virtual"></dxo-scrolling>
+      <dxo-filter-row
+        [visible]="isFilterRowVisible"
+        [applyFilter]="auto"
+      ></dxo-filter-row>
+      <dxo-header-filter [visible]="isFilterOpened">
+        <dxo-search [enabled]="true"></dxo-search>
+      </dxo-header-filter>
+      <dxo-filter-panel [visible]="isFilterOpened"></dxo-filter-panel>
+      <dxo-filter-builder [allowHierarchicalFields]="true">
+      </dxo-filter-builder>
+
+      <dxo-filter-row
+        [visible]="isFilterRowVisible"
+        [applyFilter]="auto"
+      ></dxo-filter-row>
+      <dxo-toolbar>
+        <dxi-item location="before">
+          <div
+            class="grid-header"
+            style="
+              font-weight: 600;
+              font-size: 20px;
+              margin-left: 12px;
+              padding: -3px;
+              margin-right: 3px;
+            "
+          >
+            Debit Note
+          </div>
+        </dxi-item>
+        <dxi-item location="after" template="dateFilterTemplate"></dxi-item>
+        <!-- <dxi-item widget="dxButton" [options]="filterButtonOptions"></dxi-item> -->
+        <dxi-item
+          location="after"
+          locateInMenu="auto"
+          widget="dxButton"
+          [options]="searchButtonOptions"
+        ></dxi-item>
+
+        <dxi-item
+          location="after"
+          locateInMenu="auto"
+          widget="dxButton"
+          [options]="refreshButtonOptions"
+        ></dxi-item>
+        <dxi-item location="after" style="margin-top: 3px">
+          <div class="toolbar-divider"></div>
+        </dxi-item>
+        <dxi-item
+          name="exportButton"
+          location="after"
+          cssClass="export-btn"
+        ></dxi-item>
+
+        <dxi-item
+          *ngIf="canAdd"
+          location="after"
+          locateInMenu="auto"
+          widget="dxButton"
+          [options]="addButtonOptions"
+        ></dxi-item>
+      </dxo-toolbar>
+
+      <div *dxTemplate="let data of 'dateFilterTemplate'">
+        <dx-select-box
+          [dataSource]="dateRanges"
+          [displayExpr]="displayExpr"
+          valueExpr="value"
+          [(value)]="selectedDateRange"
+          (onValueChanged)="onDateRangeChanged($event)"
+          (onOpened)="attachItemClickHandler($event)"
+          width="220"
+        >
+          <!-- This controls the dropdown list rendering -->
+          <div *dxTemplate="let item of 'item'">
+            {{ item.value === "custom" ? "Custom" : item.label }}
+          </div>
+        </dx-select-box>
+      </div>
+      <dxi-column dataField="DOC_NO" caption="Doc No"></dxi-column>
+      <dxi-column dataField="INVOICE_NO" caption="Invoice No"></dxi-column>
+      <dxi-column dataField="SUPP_NAME" caption="Supplier"></dxi-column>
+      <dxi-column
+        dataField="GROSS_AMOUNT"
+        caption="Gross Amount"
+        dataType="number"
+        [format]="{ type: 'fixedPoint', precision: 2 }"
+      ></dxi-column>
+      <dxi-column
+        dataField="GST_AMOUNT"
+        [caption]="vatTitle + ' Amount'"
+        dataType="number"
+        [format]="{ type: 'fixedPoint', precision: 2 }"
+      ></dxi-column>
+      <dxi-column
+        dataField="NET_AMOUNT"
+        caption="NET Amount"
+        dataType="number"
+        [format]="{ type: 'fixedPoint', precision: 2 }"
+      ></dxi-column>
+      <dxi-column dataField="NARRATION" caption="Narration"></dxi-column>
+      <dxi-column
+        dataField="TRANS_DATE"
+        caption="Date"
+        dataType="date"
+        [allowEditing]="false"
+        format="dd-MM-yyyy"
+      ></dxi-column>
+      <dxi-column
+        caption="Status"
+        dataField="STATUS"
+        [width]="80"
+        [cellTemplate]="statusCellRender"
+        [allowHeaderFiltering]="true"
+        [headerFilter]="{
+          dataSource: getStatusFilterData,
+          encodeHtml: false,
+        }"
+      >
+      </dxi-column>
+
+      <dxi-column
+        type="buttons"
+        caption="Actions"
+        [width]="140"
+        cellTemplate="actionTemplate"
+      >
+      </dxi-column>
+
+      <div *dxTemplate="let cellData of 'actionTemplate'">
+        <!-- Edit -->
+        <i
+          *ngIf="canEdit"
+          class="dx-icon dx-icon-edit"
+          [style.opacity]="
+            cellData.data.TRANS_STATUS === 2 || cellData.data.TRANS_STATUS === 5
+              ? '0.4'
+              : '1'
+          "
+          [style.pointer-events]="
+            cellData.data.TRANS_STATUS === 2 || cellData.data.TRANS_STATUS === 5
+              ? 'none'
+              : 'auto'
+          "
+          style="cursor: pointer; margin-right: 10px"
+          title="Edit"
+          (click)="onEditDebitNote({ data: cellData.data, cancel: false })"
+        ></i>
+
+        <!-- Delete -->
+        <i
+          *ngIf="canDelete"
+          class="dx-icon dx-icon-trash"
+          [style.opacity]="
+            cellData.data.TRANS_STATUS === 2 || cellData.data.TRANS_STATUS === 5
+              ? '0.4'
+              : '1'
+          "
+          [style.pointer-events]="
+            cellData.data.TRANS_STATUS === 2 || cellData.data.TRANS_STATUS === 5
+              ? 'none'
+              : 'auto'
+          "
+          style="cursor: pointer; margin-right: 10px"
+          title="Delete"
+          (click)="onDeleteDebitNote({ data: cellData.data, cancel: false })"
+        ></i>
+
+        <!-- Verify -->
+        <span
+          *ngIf="
+            (cellData.data.TRANS_STATUS === 2 && canApprove) ||
+            (cellData.data.TRANS_STATUS !== 2 && canVerify) ||
+            cellData.data.TRANS_STATUS >= 5
+          "
+          style="
+            position: relative;
+            display: inline-block;
+            width: 18px;
+            height: 18px;
+            margin-left: 10px;
+            cursor: pointer;
+            vertical-align: middle;
+          "
+          [title]="
+            cellData.data.TRANS_STATUS === 5
+              ? 'Approved'
+              : cellData.data.TRANS_STATUS === 2
+                ? 'Approve'
+                : 'Verify'
+          "
+          (click)="onVerifyInvoice({ row: { data: cellData.data } })"
+        >
+          <!-- Blue badge -->
+          <i
+            class="fas fa-certificate"
+            [style.color]="
+              cellData.data.TRANS_STATUS === 5
+                ? '#10B981'
+                : cellData.data.TRANS_STATUS === 2
+                  ? '#0073D8'
+                  : '#FFA500'
+            "
+            style="font-size: 18px; position: absolute; top: 0; left: 0"
+          ></i>
+
+          <!-- White tick -->
+          <i
+            class="fas fa-check"
+            style="
+              color: white;
+              font-size: 7px;
+              position: absolute;
+              top: 5px;
+              left: 5px;
+              pointer-events: none;
+            "
+          ></i>
+        </span>
+      </div>
+    </dx-data-grid>
+  </div>
+</div>
+
+<dx-popup
+  [(visible)]="isAddDebitNote"
+  [width]="'90vw'"
+  [height]="'100vh'"
+  [title]="popupTitle"
+  (onHiding)="handleClose()"
+>
+  <app-add-debit
+    (popupClosed)="handleClose()"
+    [canApprove]="canApprove"
+    [mode]="'new'"
+  ></app-add-debit>
+</dx-popup>
+
+<dx-popup
+  [(visible)]="isEditDebitNote"
+  [width]="'90vw'"
+  [height]="'100vh'"
+  title="Edit Debit Note"
+  (onHiding)="handleClose()"
+>
+  <ng-container *ngIf="isEditDebitNote">
+    <app-edit-debit
+      [mode]="'edit'"
+      [debitFormData]="selectedDebitNote"
+      (popupClosed)="handleClose()"
+      [canApprove]="canApprove"
+    ></app-edit-debit>
+  </ng-container>
+</dx-popup>
+
+<dx-popup
+  [(visible)]="isVerifyDebitNote"
+  [width]="'90vw'"
+  [height]="'100vh'"
+  title="Verify Debit Note"
+  (onHiding)="handleClose()"
+>
+  <ng-container *ngIf="isVerifyDebitNote">
+    <app-edit-debit
+      [debitFormData]="selectedDebitNote"
+      (popupClosed)="handleClose()"
+      [canApprove]="canApprove"
+      [mode]="'verify'"
+      [isVerifyDebitNote]="isVerifyDebitNote"
+    ></app-edit-debit>
+  </ng-container>
+</dx-popup>
+
+<dx-popup
+  [(visible)]="isApproveDebitNote"
+  [width]="'90vw'"
+  [height]="'100vh'"
+  title="Approve Journal Book"
+  (onHiding)="handleClose()"
+>
+  <ng-container *ngIf="isApproveDebitNote">
+    <app-edit-debit
+      [mode]="'approve'"
+      [debitFormData]="selectedDebitNote"
+      (popupClosed)="handleClose()"
+      [canApprove]="canApprove"
+      [isApproveMode]="true"
+    ></app-edit-debit>
+  </ng-container>
+</dx-popup>
+
+<dx-popup
+  [(visible)]="isViewDebitNote"
+  [width]="'90vw'"
+  [height]="'100vh'"
+  [title]="popupTitle"
+  (onHiding)="handleClose()"
+>
+  <ng-container *ngIf="isViewDebitNote">
+    <app-view-debit
+      [debitFormData]="selectedDebitNote"
+      (popupClosed)="handleClose()"
+      [DNid]="selectedDN"
+    ></app-view-debit>
+  </ng-container>
+</dx-popup>
+
+<app-custom-date-popup
+  [(visible)]="showCustomDatePopup"
+  [startDate]="customStartDate"
+  [endDate]="customEndDate"
+  (applyDates)="onCustomDateApplied($event)"
+>
+</app-custom-date-popup>
+
+<!-- <dx-popup
+  [(visible)]="showCustomDatePopup"
+  [showTitle]="true"
+  title="Select Dates"
+  [width]="350"
+  [height]="170"
+  [dragEnabled]="false"
+>
+  <div>
+    <div class="date-range-container">
+      <dx-date-box
+        [(value)]="customStartDate"
+        type="date"
+        width="300"
+        placeholder="From Date"
+      >
+      </dx-date-box>
+
+      <dx-date-box
+        [(value)]="customEndDate"
+        type="date"
+        placeholder="To Date"
+        width="300"
+      >
+      </dx-date-box>
+    </div>
+
+    <div class="button-container">
+      <dx-button
+        text="Apply"
+        type="default"
+        (onClick)="applyCustomDateFilter()"
+      ></dx-button>
+    </div>
+  </div>
+</dx-popup> -->

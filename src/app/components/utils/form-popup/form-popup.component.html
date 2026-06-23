@@ -1,0 +1,61 @@
+<dx-popup
+  [title]="titleText"
+  [(visible)]="visible"
+  [fullScreen]="!!(screen.xSmallScreenChanged | async)"
+  [width]="width"
+  [wrapperAttr]="getWrapperAttrs | apply: wrapperAttr"
+  (onHidden)="close()"
+  [height]="height"
+  [shading]="false"
+>
+  <dxi-toolbar-item toolbar="bottom" location="after">
+    <div
+      style="
+        display: flex;
+        flex-direction: column;
+        align-items: flex-end; /* keep right aligned */
+        gap: 15px;
+        width: 100%;
+      "
+    >
+      <!-- Wrapper to align checkbox with buttons -->
+      <div
+        style="display: flex; flex-direction: column; align-items: flex-start"
+      >
+        <!-- Approve -->
+        <div
+          *ngIf="showApprove"
+          style="display: flex; align-items: center; gap: 6px"
+        >
+          <dx-check-box
+            [value]="isApproved"
+            (onValueChanged)="isApprovedChange.emit($event.value)"
+          ></dx-check-box>
+          <label>Approve</label>
+        </div>
+
+        <!-- Buttons -->
+        <div style="display: flex; gap: 10px; margin-top: 4px">
+          <dx-button
+            text="Cancel"
+            stylingMode="outlined"
+            type="normal"
+            (onClick)="close()"
+          ></dx-button>
+
+          <dx-button
+            [text]="isSaveDisabled ? 'Saving...' : saveButtonText"
+            stylingMode="contained"
+            type="default"
+            [disabled]="isSaveDisabled"
+            [icon]="isSaveDisabled ? 'spin' : ''"
+            (onClick)="onSaveClick()"
+          ></dx-button>
+        </div>
+      </div>
+    </div>
+  </dxi-toolbar-item>
+  <dx-validation-group #validationGroup>
+    <ng-content></ng-content>
+  </dx-validation-group>
+</dx-popup>

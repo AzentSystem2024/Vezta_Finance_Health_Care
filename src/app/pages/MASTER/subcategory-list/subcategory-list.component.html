@@ -1,0 +1,155 @@
+<div class="view-wrapper list-page">
+  <div class="grid-container">
+    <dx-data-grid
+      [showColumnLines]="true"
+      class="grid theme-dependent"
+      [dataSource]="SubCategoryDataSource"
+      [rowAlternationEnabled]="true"
+      rowAlternationInterval="2"
+      (onRowRemoving)="onRowRemoving($event)"
+      (onRowUpdating)="onRowUpdating($event)"
+      (onExporting)="onExporting($event)"
+      [showBorders]="true"
+      [width]="'100%'"
+      [height]="'82vh'"
+      [scrolling]="{ mode: 'virtual' }"
+      (onEditingStart)="onEditSubcategory($event)"
+    >
+      <dxo-paging [pageSize]="10"></dxo-paging>
+      <dxo-pager
+        [visible]="true"
+        [allowedPageSizes]="allowedPageSizes"
+        [displayMode]="displayMode"
+        [showPageSizeSelector]="showPageSizeSelector"
+        [showInfo]="true"
+        [showNavigationButtons]="true"
+      ></dxo-pager>
+      <dxo-editing mode="popup" [allowUpdating]="canEdit" [allowDeleting]="canDelete">
+        
+        <dxo-popup
+          title="Edit Category"
+          [showTitle]="true"
+          [width]="600"
+          [height]="300"
+        >
+        </dxo-popup>
+      </dxo-editing>
+
+      <dxo-export [enabled]="true" [formats]="['xlsx']"> </dxo-export>
+
+      <dxo-toolbar>
+        <dxi-item location="before">
+          <div
+            class="grid-header"
+            style="
+              font-weight: 600;
+              font-size: 20px;
+              margin-left: 12px;
+              padding: -3px;
+              margin-right: 3px;
+            "
+          >
+            Item Sub Category
+          </div>
+        </dxi-item>
+
+        <dxi-item
+          location="after"
+          locateInMenu="auto"
+          widget="dxButton"
+          [options]="searchButtonOptions"
+        ></dxi-item>
+
+        <dxi-item
+          location="after"
+          locateInMenu="auto"
+          widget="dxButton"
+          [options]="refreshButtonOptions"
+        ></dxi-item>
+        <!-- Divider -->
+        <dxi-item location="after">
+          <div class="toolbar-divider"></div>
+        </dxi-item>
+        <dxi-item
+          name="exportButton"
+          location="after"
+          cssClass="export-btn"
+        ></dxi-item>
+
+        <!-- Add -->
+        <dxi-item
+          location="after"
+          widget="dxButton"
+          [visible]="canAdd"
+          [options]="addButtonOptions"
+        ></dxi-item>
+
+        <dxi-item name="searchPanel" locateInMenu="auto"></dxi-item>
+      </dxo-toolbar>
+      <dxi-column dataField="CODE" caption="Code">
+        <dxi-validation-rule type="required" message="Code is required">
+          <dxi-validation-rule type="required" message="Code is required">
+          </dxi-validation-rule>
+        </dxi-validation-rule>
+      </dxi-column>
+      <dxi-column dataField="SUBCAT_NAME" caption="subCategory">
+        <dxi-validation-rule type="required" message="Sub Category is required">
+          <dxi-validation-rule
+            type="required"
+            message="Sub Category is required"
+          >
+          </dxi-validation-rule>
+        </dxi-validation-rule>
+      </dxi-column>
+      <dxi-column dataField="CAT_NAME" caption="Category"> </dxi-column>
+      <!-- <dxi-column dataField="DEPT_NAME" caption="Category"> </dxi-column> -->
+      <!-- <dxo-lookup
+        [dataSource]="categoryList"
+        displayExpr="CAT_NAME"
+        valueExpr="ID"
+      >
+      <dxi-validation-rule type="required" message="Category is required">
+        <dxi-validation-rule type="required" message="Category is required">
+        </dxi-validation-rule>
+      </dxi-validation-rule>
+      </dxo-lookup> -->
+      <!-- </dxi-column> -->
+      <!-- <dxi-column dataField="LOYALTY_POINT" caption="LOYALTY POINT"></dxi-column> -->
+      <!-- <dxi-column dataField="COST_HEAD_ID" caption="COST HEAD"></dxi-column> -->
+      <!-- <dxi-column dataField="DEPT_ID" caption="Department">
+    <dxo-lookup
+      [dataSource]="departmentDropdownData"
+      displayExpr="DESCRIPTION"
+      valueExpr="ID"
+    >
+      <dxi-validation-rule type="required" message="Department is required">
+        <dxi-validation-rule type="required" message="Department is required">
+        </dxi-validation-rule>
+      </dxi-validation-rule>
+    </dxo-lookup>
+  </dxi-column> -->
+    </dx-data-grid>
+  </div>
+</div>
+<form-popup
+  [(visible)]="isAddSubcategoryPopupOpened"
+  (save)="onClickSaveSubCategory()"
+  titleText="New SubCategory"
+  [showApprove]="false"
+>
+  <app-subcategory-form></app-subcategory-form>
+</form-popup>
+
+<dx-popup
+  [(visible)]="editSubcategory"
+  [width]="'30vw'"
+  [height]="'40vh'"
+  title="Edit SubCategory"
+  (onHiding)="handleClose()"
+>
+  <app-subcategory-edit
+    *ngIf="editSubcategory"
+    [selectedData]="selected_data"
+    (popupClosed)="handleClose()"
+  ></app-subcategory-edit>
+</dx-popup>

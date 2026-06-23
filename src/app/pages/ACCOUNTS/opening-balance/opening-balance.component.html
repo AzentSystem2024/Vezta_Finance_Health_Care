@@ -1,0 +1,269 @@
+<div class="view-wrapper list-page">
+  <div class="grid-container">
+    <dx-data-grid
+      #itemsGridRef
+      [dataSource]="openingBalance"
+      class="grid theme-dependent"
+      [showBorders]="true"
+      [showColumnLines]="true"
+      [columnAutoWidth]="false"
+      [wordWrapEnabled]="false"
+      [rowAlternationEnabled]="true"
+      [allowColumnReordering]="true"
+      [showColumnHeaders]="true"
+      [columnAutoWidth]="true"
+      [allowColumnResizing]="true"
+      [height]="'75vh'"
+      [columnResizingMode]="'nextColumn'"
+      [headerFilter]="{ visible: true }"
+      [scrolling]="{ mode: 'virtual' }"
+      rowAlternationInterval="2"
+      [selection]="{ mode: 'single' }"
+      [editing]="{
+        mode: 'cell',
+        allowUpdating: !isReadOnly || canEdit,
+        allowDeleting: !isReadOnly || canDelete,
+        allowAdding: !isReadOnly,
+        newRowPosition: 'first',
+        useIcons: true,
+      }"
+      (onEditorPreparing)="onEditorPreparing($event)"
+      (onContentReady)="onGridContentReady($event)"
+      (onRowRemoved)="onRowRemoved($event)"
+      (onRowValidating)="onRowValidating($event)"
+      (onExporting)="onExporting($event)"
+    >
+      <dxo-editing
+        [allowUpdating]="canEdit"
+        [allowDeleting]="canDelete"
+      ></dxo-editing>
+
+      <dxo-paging [pageSize]="10"></dxo-paging>
+      <dxo-pager
+        [visible]="true"
+        [allowedPageSizes]="allowedPageSizes"
+        [displayMode]="displayMode"
+        [showPageSizeSelector]="showPageSizeSelector"
+        [showInfo]="true"
+        [showNavigationButtons]="true"
+      ></dxo-pager>
+      <dxo-export
+        [enabled]="true"
+        [allowExportSelectedData]="false"
+        [formats]="['xlsx']"
+      >
+      </dxo-export>
+      <!-- <dxo-column-chooser [enabled]="true"></dxo-column-chooser> -->
+      <dxo-column-chooser
+        hideOnOutsideClick="true"
+        [enabled]="true"
+        mode="select"
+      >
+      </dxo-column-chooser>
+      <dxo-load-panel [showPane]="false"></dxo-load-panel>
+      <dxo-scrolling mode="standard"></dxo-scrolling>
+      <dxo-data-grid-header-filter
+        [visible]="showHeaderFilter"
+      ></dxo-data-grid-header-filter>
+      <!-- <dxo-filter-row
+            [visible]="isFilterRowVisible"
+            [applyFilter]="auto"
+          ></dxo-filter-row>
+          <dxo-header-filter [visible]="isFilterOpened">
+            <dxo-search [enabled]="true"></dxo-search>
+          </dxo-header-filter>
+          <dxo-filter-panel [visible]="isFilterOpened"></dxo-filter-panel>
+          <dxo-filter-builder [allowHierarchicalFields]="true">
+          </dxo-filter-builder> -->
+      <dxo-toolbar>
+        <dxi-item location="before">
+          <div class="grid-header">Opening Balance</div>
+        </dxi-item>
+
+        <dxi-item
+          location="after"
+          locateInMenu="auto"
+          widget="dxButton"
+          [options]="refreshButtonOptions"
+        ></dxi-item>
+        <dxi-item
+          name="exportButton"
+          location="after"
+          cssClass="export-btn"
+        ></dxi-item>
+        <dxi-item name="columnChooserButton" locateInMenu="auto"></dxi-item>
+
+        <dxi-item
+          *ngIf="canAdd"
+          location="after"
+          locateInMenu="auto"
+          widget="dxButton"
+          [options]="addButtonOptions"
+        ></dxi-item>
+      </dxo-toolbar>
+      <dxi-column
+        dataField="SL_NO"
+        caption="Sl. No."
+        [width]="100"
+        [allowEditing]="false"
+        alignment="center"
+      ></dxi-column>
+
+      <dxi-column
+        dataField="ledgerCode"
+        caption="Ledger Code"
+        [width]="130"
+        [editorType]="'dxSelectBox'"
+        [allowEditing]="!isReadOnly || canEdit"
+        [lookup]="{
+          dataSource: ledgerList,
+          valueExpr: 'HEAD_CODE',
+          displayExpr: 'HEAD_CODE',
+          searchEnabled: true,
+        }"
+      ></dxi-column>
+
+      <dxi-column
+        dataField="ledgerName"
+        caption="Ledger Name"
+        [editorType]="'dxSelectBox'"
+        [allowEditing]="!isReadOnly"
+        [lookup]="{
+          dataSource: ledgerList,
+          valueExpr: 'HEAD_NAME',
+          displayExpr: 'HEAD_NAME',
+          searchEnabled: true,
+        }"
+      ></dxi-column>
+      <dxi-column
+        dataField="STORE_ID"
+        caption="Branch/Store"
+        [editorType]="'dxSelectBox'"
+        [allowEditing]="!isReadOnly"
+        [lookup]="{
+          dataSource: Stores_List,
+          valueExpr: 'ID',
+          displayExpr: 'DESCRIPTION',
+          searchEnabled: true,
+        }"
+      >
+        <dxi-validation-rule
+          type="required"
+          message="Branch/Store is required"
+        ></dxi-validation-rule>
+      </dxi-column>
+      <dxi-column
+        dataField="DEPT_ID"
+        caption="Department"
+        [editorType]="'dxSelectBox'"
+        [allowEditing]="!isReadOnly"
+        [lookup]="{
+          dataSource: Departments,
+          valueExpr: 'ID',
+          displayExpr: 'DESCRIPTION',
+          searchEnabled: true,
+        }"
+      ></dxi-column>
+
+      <dxi-column
+        dataField="debitAmount"
+        caption="Debit Amount"
+        dataType="number"
+        [width]="200"
+        [format]="{ type: 'fixedPoint', precision: 2 }"
+        [allowEditing]="!isReadOnly"
+      >
+      </dxi-column>
+
+      <dxi-column
+        dataField="creditAmount"
+        caption="Credit Amount"
+        dataType="number"
+        [width]="200"
+        [format]="{ type: 'fixedPoint', precision: 2 }"
+        [allowEditing]="!isReadOnly"
+      >
+      </dxi-column>
+
+      <dxo-summary>
+        <dxi-total-item
+          column="debitAmount"
+          summaryType="sum"
+          valueFormat="#,##0.00"
+          displayFormat="Total: {0}"
+        ></dxi-total-item>
+
+        <dxi-total-item
+          column="creditAmount"
+          summaryType="sum"
+          valueFormat="#,##0.00"
+          displayFormat="Total: {0}"
+        ></dxi-total-item>
+      </dxo-summary>
+    </dx-data-grid>
+  </div>
+</div>
+
+<div
+  class="approve-checkbox-container"
+  style="margin-top: 10px; text-align: right"
+>
+  <!-- <dx-button
+    icon="fas fa-file-pdf"
+    text="PDF"
+    type="normal"
+    stylingMode="outlined"
+    [width]="100"
+    (onClick)="viewPdf()"
+    hint="View PDF"
+  >
+  </dx-button> -->
+  <dx-check-box
+    [text]="isReadOnly ? 'Approved' : 'Approve'"
+    [(value)]="isApproved"
+    [width]="'auto'"
+    [disabled]="isApproveDisabled || isReadOnly"
+    style="margin-left: 10px"
+  ></dx-check-box>
+</div>
+
+<div class="form-popup-buttons-container">
+  <div class="popup-footer">
+    <dx-button
+      text="Cancel"
+      (onClick)="cancel()"
+      stylingMode="outlined"
+      type="normal"
+    ></dx-button>
+    <dx-button
+      *ngIf="canAdd"
+      #saveBtnRef
+      id="saveBtn"
+      [text]="isApproved ? 'Commit' : 'Save'"
+      (onClick)="saveOpeningBalance()"
+      stylingMode="contained"
+      type="default"
+      [disabled]="isReadOnly"
+    ></dx-button>
+  </div>
+</div>
+
+<dx-popup
+  [(visible)]="isPdfPopupVisible"
+  [width]="900"
+  [height]="700"
+  [showTitle]="true"
+  title="Opening Balance PDF Preview"
+  [dragEnabled]="true"
+  [closeOnOutsideClick]="true"
+>
+  <div class="pdf-container" style="margin-top: 10px">
+    <iframe
+      *ngIf="pdfSrc"
+      [src]="pdfSrc"
+      width="100%"
+      height="600"
+      style="border: 1px solid #ccc; border-radius: 4px"
+    ></iframe>
+  </div>
+</dx-popup>

@@ -1,0 +1,167 @@
+/* stylelint-disable no-duplicate-selectors */
+@use "../../../../variables.scss" as *;
+@import url("https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap");
+:host {
+  display: flex;
+  flex-direction: column;
+  min-height: 100%;
+  height: 100%;
+
+  .menu-container {
+    background-color: var(--side-panel-background);
+    min-height: 100%;
+    width: 250px;
+    display: flex;
+    flex: 1;
+    padding-top: var(--toolbar-vertical-padding);
+    padding-bottom: var(--footer-height);
+
+    ::ng-deep .dx-treeview {
+      // ## Long text positioning
+      white-space: nowrap;
+
+      // ## Icon width customization
+      .dx-treeview-item {
+        padding-left: 5px;
+        flex-direction: row-reverse;
+        border-radius: 8px;
+        min-height: 46px; /* instead of fixed height */
+        margin-top: 3px;
+        align-items: center;
+        white-space: normal; /* allow wrapping */
+        line-height: 1.3em;
+        padding-right: 7px;
+
+        .dx-treeview-item-content {
+          white-space: normal; /* allow wrapping for text */
+          word-break: break-word;
+        }
+
+        .dx-icon.dx-icon {
+          width: var(--side-panel-min-width);
+          font-weight: bold;
+          margin-bottom: 1px;
+          margin-right: 1px;
+          flex-shrink: 0;
+        }
+      }
+
+      // ##
+
+      // ## Arrow customization
+      // .dx-treeview-node.dx-treeview-node {
+      //   padding: 0 0;
+      // }
+
+      // .dx-treeview-toggle-item-visibility {
+      //   right: 10px;
+      //   left: auto;
+      // }
+
+      .dx-rtl .dx-treeview-toggle-item-visibility {
+        left: 10px;
+        right: auto;
+      }
+
+      // ##
+
+      .dx-treeview-node {
+        &[aria-level="1"] .dx-treeview-item-content {
+          font-weight: bold;
+          text-align: left;
+          position: relative;
+        }
+
+        &[aria-level="2"] .dx-treeview-item-content {
+          font-weight: normal;
+
+          padding-left: calc(var(--side-panel-min-width) + 5px);
+          /* adjust 20px until the submenu sits under the main menu's center */
+        }
+      }
+
+      // ##
+    }
+
+    // ##
+  }
+}
+.dx-treeview
+  .dx-treeview-node[aria-level="1"]
+  > .dx-treeview-item.dx-state-selected {
+  background-color: var(--sub-menu-bg-color) !important;
+  color: var(--sub-menu-color) !important;
+  border-radius: 8px;
+  height: 46px;
+}
+
+.dx-treeview
+  .dx-treeview-node[aria-level="2"]
+  > .dx-treeview-item.dx-state-selected {
+  background-color: var(--sub-menu-bg-color) !important;
+  color: var(--sub-menu-color) !important;
+  border-radius: 8px;
+  height: 46px;
+}
+// dx-tree-view{
+//   background-color: #a7cff7;
+// }
+.treeviewClass {
+  color: whitesmoke;
+  font-family: "Roboto", sans-serif;
+}
+
+::ng-deep
+  .dx-treeview
+  .dx-treeview-node[aria-level="2"]
+  > .dx-treeview-item.dx-state-hover {
+  color: var(--select-menu-text-color);
+  background-color: var(--select-menu-bg-color) !important;
+  border-radius: 8px;
+  height: 46px;
+  // margin-left: 50px;
+}
+
+::ng-deep
+  .dx-treeview
+  .dx-treeview-node[aria-level="1"]
+  > .dx-treeview-item.dx-state-hover
+  .dx-treeview-toggle-item-visibility {
+  color: blue;
+}
+
+::ng-deep
+  .dx-treeview
+  .dx-treeview-node[aria-level="1"]
+  > .dx-treeview-item.dx-state-hover {
+  color: #0073d8;
+  background-color: var(--select-menu-bg-color) !important;
+  border-radius: 8px;
+  height: 46px;
+  // margin-left: 50px;
+}
+::ng-deep
+  .dx-treeview
+  .dx-treeview-node[aria-level="2"]
+  > .dx-treeview-item.dx-state-selected {
+  background-color: var(--sub-menu-bg-color) !important;
+  color: var(--sub-menu-color) !important; /* dark blue text */
+  border-radius: 8px;
+  // margin-left: 50px;
+}
+
+//==================new changes========================
+
+::ng-deep {
+  .dx-treeview-item-without-checkbox.dx-state-selected > .dx-treeview-item {
+    color: var(--select-menu-text-color);
+    background-color: var(--select-menu-bg-color) !important;
+    height: 46px;
+  }
+}
+
+::ng-deep .dx-treeview-toggle-item-visibility .dx-state-hover {
+  right: 10px;
+  left: auto;
+  color: #0073d8;
+}

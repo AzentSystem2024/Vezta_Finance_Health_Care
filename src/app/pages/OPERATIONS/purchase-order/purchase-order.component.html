@@ -1,0 +1,429 @@
+<div class="view-wrapper list-page">
+  <dx-data-grid
+    class="grid theme-dependent"
+    [dataSource]="filteredPOList"
+    [showBorders]="true"
+    [showColumnLines]="true"
+    [showBorders]="true"
+    [columnAutoWidth]="false"
+    [wordWrapEnabled]="false"
+    [rowAlternationEnabled]="true"
+    [allowColumnReordering]="true"
+    [showColumnHeaders]="true"
+    [allowColumnResizing]="true"
+    [columnResizingMode]="'nextColumn'"
+    [filterRow]="{ visible: false }"
+    [headerFilter]="{ visible: false }"
+    [scrolling]="{ mode: 'virtual' }"
+    rowAlternationInterval="2"
+    [selection]="{ mode: 'single' }"
+    focusStateEnabled="false"
+    [width]="'100%'"
+    [height]="'82vh'"
+    (onEditingStart)="onEditingRow($event)"
+    (onRowRemoved)="deletePOData($event)"
+    (onCellPrepared)="onCellPrepared($event)"
+  >
+    <dxo-editing
+      mode="popup"
+      [allowUpdating]="false"
+      [allowDeleting]="false"
+    ></dxo-editing>
+    <dxo-export
+      [enabled]="true"
+      [allowExportSelectedData]="false"
+      [formats]="['xlsx']"
+    >
+    </dxo-export>
+    <dxo-paging [pageSize]="10"></dxo-paging>
+    <dxo-pager
+      [visible]="true"
+      [allowedPageSizes]="allowedPageSizes"
+      [displayMode]="displayMode"
+      [showPageSizeSelector]="showPageSizeSelector"
+      [showInfo]="true"
+      [showNavigationButtons]="true"
+    ></dxo-pager>
+    <dxo-load-panel [showPane]="false"></dxo-load-panel>
+    <dxo-scrolling mode="virtual"></dxo-scrolling>
+    <dxo-filter-row
+      [visible]="isFilterRowVisible"
+      [applyFilter]="auto"
+    ></dxo-filter-row>
+    <dxo-header-filter [visible]="isFilterOpened">
+      <dxo-search [enabled]="true"></dxo-search>
+    </dxo-header-filter>
+    <dxo-filter-panel [visible]="isFilterOpened"></dxo-filter-panel>
+    <dxo-filter-builder [allowHierarchicalFields]="true"> </dxo-filter-builder>
+    <dxo-toolbar>
+      <dxi-item location="before">
+        <div class="grid-header">Purchase Order</div>
+      </dxi-item>
+      <!-- <dxi-item location="after">
+        <div *dxTemplate="let data of 'storeTemplate'">
+          <dx-select-box
+            label="Store"
+            labelMode="floating"
+            width="200"
+            [dataSource]="filteredStoreList"
+            [(value)]="selectedStoreId"
+            displayExpr="DESCRIPTION"
+            valueExpr="ID"
+            placeholder="Select Store *"
+            [searchEnabled]="true"
+            [elementAttr]="{ class: 'grndropdown' }"
+            (onValueChanged)="onStoreChanged($event)"
+          >
+          </dx-select-box>
+        </div>
+      </dxi-item> -->
+      <dxi-item location="after" template="dateFilterTemplate"></dxi-item>
+      <dxi-item
+        location="after"
+        locateInMenu="auto"
+        widget="dxButton"
+        [options]="searchButtonOptions"
+      ></dxi-item>
+
+      <dxi-item
+        location="after"
+        locateInMenu="auto"
+        widget="dxButton"
+        [options]="refreshButtonOptions"
+      ></dxi-item>
+
+      <dxi-item
+        name="exportButton"
+        location="after"
+        cssClass="export-btn"
+      ></dxi-item>
+      <!-- Divider -->
+      <dxi-item location="after">
+        <div class="toolbar-divider"></div>
+      </dxi-item>
+
+      <dxi-item
+        *ngIf="canAdd"
+        location="after"
+        locateInMenu="auto"
+        widget="dxButton"
+        [options]="addButtonOptions"
+      ></dxi-item>
+
+      <dxi-item location="after" locateInMenu="auto"> </dxi-item>
+      <!-- <dxi-item name="exportButton"></dxi-item> -->
+    </dxo-toolbar>
+    <div *dxTemplate="let data of 'dateFilterTemplate'">
+      <dx-select-box
+        [dataSource]="dateRanges"
+        [displayExpr]="displayExpr"
+        valueExpr="value"
+        [(value)]="selectedDateRange"
+        (onValueChanged)="onDateRangeChanged($event)"
+        (onOpened)="attachItemClickHandler($event)"
+        width="220"
+      >
+        <!-- This controls the dropdown list rendering -->
+        <div *dxTemplate="let item of 'item'">
+          {{ item.value === "custom" ? "Custom" : item.label }}
+        </div>
+      </dx-select-box>
+    </div>
+
+    <dxi-column dataField="DOC_NO" caption="PO NO."></dxi-column>
+    <dxi-column
+      dataField="PO_DATE"
+      caption="Date"
+      dataType="date"
+      [allowEditing]="false"
+      format="dd-MM-yyyy"
+    ></dxi-column>
+    <dxi-column dataField="SUPP_NAME" caption="Supplier"></dxi-column>
+    <dxi-column dataField="STORE" caption="Receiving Store"></dxi-column>
+    <dxi-column
+      dataField="NET_AMOUNT"
+      [format]="{ type: 'fixedPoint', precision: 2 }"
+      caption="Net Amount"
+    ></dxi-column>
+    <dxi-column
+      dataField="NARRATION"
+      caption="Narration"
+      width="140"
+    ></dxi-column>
+    <dxi-column
+      caption="Status"
+      dataField="STATUS"
+      [cellTemplate]="statusCellRender"
+      [allowHeaderFiltering]="true"
+      [headerFilter]="{
+        dataSource: getStatusFilterData,
+        encodeHtml: false,
+      }"
+      width="80"
+      alignment="center"
+    >
+    </dxi-column>
+    <dxi-column caption="Actions" [width]="110" cellTemplate="actionTemplate">
+    </dxi-column>
+
+    <div *dxTemplate="let cellData of 'actionTemplate'">
+      <!-- Verify / Approve / View -->
+      <span
+        *ngIf="
+          canVerify ||
+          (canApprove && cellData.data.STATUS === 'Verified') ||
+          cellData.data.STATUS === 'Approved' ||
+          cellData.data.STATUS === 'Closed'
+        "
+        style="
+          position: relative;
+          display: inline-block;
+          width: 18px;
+          height: 18px;
+          margin-right: 12px;
+          margin-top: -4px;
+          cursor: pointer;
+          vertical-align: middle;
+        "
+        [title]="
+          cellData.data.STATUS === 'Approved' ||
+          cellData.data.STATUS === 'Closed' ||
+          cellData.data.STATUS === 'Partial'
+            ? 'View'
+            : cellData.data.STATUS === 'Verified'
+              ? 'Approve'
+              : 'Verify'
+        "
+        (click)="onVerifyClick({ row: { data: cellData.data } })"
+      >
+        <!-- Badge -->
+        <i
+          class="fas fa-certificate"
+          [style.color]="
+            cellData.data.STATUS === 'Approved' ||
+            cellData.data.STATUS === 'Closed' ||
+            cellData.data.STATUS === 'Partial'
+              ? '#10B981'
+              : cellData.data.STATUS === 'Verified'
+                ? '#0073D8'
+                : '#FFA500'
+          "
+          style="font-size: 18px; position: absolute; top: 0; left: 0"
+        ></i>
+
+        <!-- Tick -->
+        <i
+          class="fas fa-check"
+          style="
+            color: white;
+            font-size: 7px;
+            position: absolute;
+            top: 5px;
+            left: 5px;
+            pointer-events: none;
+          "
+        ></i>
+      </span>
+
+      <!-- Edit -->
+      <i
+        *ngIf="
+          canEdit &&
+          !['Approved', 'Verified', 'Closed', 'Partial'].includes(
+            cellData.data.STATUS
+          )
+        "
+        class="dx-icon dx-icon-edit"
+        style="cursor: pointer; margin-right: 10px"
+        title="Edit"
+        (click)="onEditingRow({ data: cellData.data, cancel: false })"
+      ></i>
+
+      <!-- Delete -->
+      <i
+        *ngIf="
+          canDelete &&
+          !['Approved', 'Verified', 'Closed', 'Partial'].includes(
+            cellData.data.STATUS
+          )
+        "
+        class="dx-icon dx-icon-trash"
+        style="cursor: pointer"
+        title="Delete"
+        (click)="deletePOData({ data: cellData.data })"
+      ></i>
+    </div>
+  </dx-data-grid>
+
+  <form-popup
+    [(visible)]="isAddPopupOpened"
+    [width]="width"
+    [height]="height"
+    titleText="New Purchase Order"
+    [showNetAmount]="true"
+    [netSupplierAmount]="netSupplierAmount"
+    [showSupplierNetAmount]="netSupplierAmount ? true : false"
+    [netAmount]="netAmount"
+    [netQuantity]="netQuantity"
+    [isEditMode]="false"
+    [(isApproved)]="isApproved"
+    [showApprove]="canApprove"
+    [isSaveDisabled]="isSaving"
+    (save)="onClickSaveNewData()"
+    (cancel)="onCancelNewData()"
+    (resetFormEvent)="poNewForm.resetForm()"
+  >
+    <app-purchase-order-new-form
+      #poForm
+      [refreshPoNumber]="refreshPo"
+      (netSupplierAmountChange)="netSupplierAmount = $event"
+      (netAmountChange)="netAmount = $event"
+      (netQuantityChange)="netQuantity = $event"
+    ></app-purchase-order-new-form>
+  </form-popup>
+
+  <form-popup
+    *ngIf="isEditPopupOpened"
+    [(visible)]="isEditPopupOpened"
+    [width]="width"
+    [height]="height"
+    titleText="Edit Purchase Order"
+    [showNetAmount]="true"
+    [isEditMode]="true"
+    [(isApproved)]="isApproved"
+    [showApprove]="canApprove"
+    [isSaveDisabled]="isSaving"
+    (save)="UpdatePurchaseOrder()"
+  >
+    <app-purchase-order-edit-form
+      [formdata]="selectedRowData"
+      (closeForm)="CloseEditForm()"
+      (netEditSupplierAmountChange)="netEditSupplierAmount = $event"
+      (netEditAmountChange)="netEditAmount = $event"
+      (netEditQuantityChange)="netEditQuantity = $event"
+      (showSupplierAmount)="showSupplierAmount = $event"
+    ></app-purchase-order-edit-form>
+  </form-popup>
+
+  <form-popup
+    *ngIf="isVerifyPopupOpened"
+    [(visible)]="isVerifyPopupOpened"
+    [width]="width"
+    [height]="height"
+    titleText="Verify Purchase Order"
+    [showNetAmount]="true"
+    [isEditMode]="true"
+    [showApprove]="false"
+    [isSaveDisabled]="isSaving"
+    (save)="VerifyPurchaseOrder()"
+  >
+    <app-purchase-order-edit-form
+      [formdata]="selectedRowData"
+      (closeForm)="CloseEditForm()"
+      (netEditSupplierAmountChange)="netVerifySupplierAmount = $event"
+      (netEditAmountChange)="netVerifyAmount = $event"
+      (netEditQuantityChange)="netVerifyQuantity = $event"
+      (showSupplierAmount)="showSupplierAmount = $event"
+    >
+    </app-purchase-order-edit-form>
+  </form-popup>
+
+  <form-popup
+    *ngIf="isApprovePopupOpened"
+    [(visible)]="isApprovePopupOpened"
+    [width]="width"
+    [height]="height"
+    titleText="Approve Purchase Order"
+    [showNetAmount]="true"
+    [isEditMode]="true"
+    [showApprove]="false"
+    [isSaveDisabled]="isSaving"
+    (save)="ApprovePurchaseOrder()"
+  >
+    <app-purchase-order-edit-form
+      [formdata]="selectedRowData"
+      (closeForm)="CloseEditForm()"
+      (netEditSupplierAmountChange)="netVerifySupplierAmount = $event"
+      (netEditAmountChange)="netVerifyAmount = $event"
+      (netEditQuantityChange)="netVerifyQuantity = $event"
+      (showSupplierAmount)="showSupplierAmount = $event"
+    >
+    </app-purchase-order-edit-form>
+  </form-popup>
+
+  <dx-popup
+    *ngIf="isViewPopupOpened"
+    [(visible)]="isViewPopupOpened"
+    title="View Purchase Order"
+    [width]="width"
+    [height]="height"
+  >
+    <app-purchase-order-view-form
+      [formdata]="selectedRowData"
+      [poId]="selectedPoId"
+      (closeForm)="CloseEditForm()"
+      (netViewSupplierAmountChange)="netViewSupplierAmount = $event"
+      (netViewAmountChange)="netViewAmount = $event"
+      (netViewQuantityChange)="netViewQuantity = $event"
+      (showSupplierAmount)="showSupplierAmount = $event"
+    ></app-purchase-order-view-form>
+    <dxi-toolbar-item toolbar="bottom" location="center">
+      <div
+        class="form-popup-buttons-container"
+        [class.flex-buttons]="width <= 360"
+      ></div>
+    </dxi-toolbar-item>
+  </dx-popup>
+
+  <dx-popup
+    [(visible)]="showTemplatePopup"
+    title="Choose Template"
+    [height]="'30vh'"
+    [width]="'30vw'"
+    [showCloseButton]="true"
+  >
+    <div class="popup-content">
+      <dx-select-box
+        [(value)]="selectedTemplate"
+        [dataSource]="templateList"
+        displayExpr="TEMPLATE_NAME"
+        valueExpr="TEMPLATE_NAME"
+        placeholder="Select a template"
+        [searchEnabled]="true"
+      ></dx-select-box>
+      <dxi-toolbar-item toolbar="bottom" location="center">
+        <div
+          class="form-popup-buttons-container"
+          [class.flex-buttons]="width <= 360"
+        >
+          <dx-button
+            style="margin-top: 30px"
+            text="Print"
+            type="default"
+            stylingMode="contained"
+            [width]="'100px'"
+          ></dx-button>
+        </div>
+      </dxi-toolbar-item>
+    </div>
+  </dx-popup>
+
+  <dx-popup
+    [(visible)]="showReportDesigner"
+    title="Print Purchase Order"
+    [height]="'100vh'"
+    [width]="width"
+    [showCloseButton]="true"
+    *ngIf="flag"
+  >
+    <div></div>
+  </dx-popup>
+</div>
+
+<app-custom-date-popup
+  [(visible)]="showCustomDatePopup"
+  [startDate]="customStartDate"
+  [endDate]="customEndDate"
+  (applyDates)="onCustomDateApplied($event)"
+>
+</app-custom-date-popup>

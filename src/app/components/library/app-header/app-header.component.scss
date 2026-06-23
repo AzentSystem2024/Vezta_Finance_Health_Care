@@ -1,0 +1,79 @@
+@use "../../../../variables.scss" as *;
+
+:host {
+  flex: 0 0 auto;
+  z-index: 5;
+  box-shadow:
+    0 4px 8px rgba(0, 0, 0, 0.05),
+    0 0 4px rgba(0, 0, 0, 0.15);
+}
+
+header {
+  padding: var(--header-toolbar-vertical-padding) 0;
+  background-color: var(--base-bg);
+
+  .header-toolbar {
+    padding-right: var(--content-padding);
+
+    ::ng-deep .global-search-box {
+      padding-right: 11px;
+    }
+
+    .messages {
+      position: relative;
+
+      .dx-badge {
+        position: absolute;
+        background-color: red;
+        color: white;
+        right: -10%;
+        top: -10%;
+        font-size: 12px;
+        display: flex;
+        align-items: center;
+        border-radius: 10px;
+        justify-content: center;
+      }
+    }
+
+    ::ng-deep .dx-toolbar-item.menu-button {
+      width: var(--side-panel-min-width);
+      text-align: center;
+      padding: 0;
+    }
+  }
+}
+
+.logo-image {
+  // margin-left: 5px;
+  height: 30px;
+}
+
+.user-info {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end; /* aligns nicely on right side */
+  line-height: 1.2;
+}
+
+.user-name {
+  font-weight: 600;
+  font-size: 14px;
+}
+
+.company-name {
+  font-size: 12px;
+  color: #6c757d; /* subtle grey */
+}
+
+.logo-dark {
+  display: none;
+}
+
+.dx-theme-fluent-dark .logo-dark {
+  display: block;
+}
+
+.dx-theme-fluent-dark .logo-light {
+  display: none;
+}

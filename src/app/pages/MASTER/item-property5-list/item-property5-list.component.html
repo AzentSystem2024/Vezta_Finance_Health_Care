@@ -1,0 +1,103 @@
+<div class="view-wrapper list-page">
+  <dx-data-grid
+    class="grid theme-dependent"
+    [dataSource]="ItemProperty5DataSource"
+    [rowAlternationEnabled]="true"
+    rowAlternationInterval="2"
+    [showBorders]="true"
+    (onRowRemoving)="onRowRemoving($event)"
+    [showColumnLines]="true"
+    [width]="'100%'"
+    [height]="'82vh'"
+    (onEditingStart)="OnEditingStartItem($event)"
+  >
+    <dxo-paging [pageSize]="10"></dxo-paging>
+    <dxo-pager
+      [visible]="true"
+      [allowedPageSizes]="allowedPageSizes"
+      [displayMode]="displayMode"
+      [showPageSizeSelector]="showPageSizeSelector"
+      [showInfo]="true"
+      [showNavigationButtons]="true"
+    ></dxo-pager>
+    <dxo-editing mode="popup" [allowUpdating]="true" [allowDeleting]="true">
+      <dxo-popup
+        title="Edit {{ itemlabel }}"
+        [showTitle]="true"
+        [width]="450"
+        [height]="300"
+      ></dxo-popup>
+      <dxo-form [colCount]="1"> </dxo-form>
+    </dxo-editing>
+
+    <dxo-filter-row [visible]="isFilterRowVisible"></dxo-filter-row>
+
+    <dxo-toolbar>
+      <dxi-item location="before">
+        <div class="grid-header">Item Property 5</div>
+      </dxi-item>
+      <dxi-item
+        location="after"
+        widget="dxButton"
+        [options]="searchButtonOptions"
+      ></dxi-item>
+
+      <!-- Refresh -->
+      <dxi-item
+        location="after"
+        widget="dxButton"
+        [options]="refreshButtonOptions"
+      ></dxi-item>
+      <!-- Divider -->
+      <dxi-item location="after">
+        <div class="toolbar-divider"></div>
+      </dxi-item>
+      <!-- Export (built-in, kept) -->
+      <dxi-item
+        name="exportButton"
+        location="after"
+        cssClass="toolbar-icon-btn export-btn"
+      ></dxi-item>
+
+      <dxi-item
+        location="after"
+        widget="dxButton"
+        [options]="addButtonOptions"
+      ></dxi-item>
+    </dxo-toolbar>
+
+    <dxi-column dataField="CODE" caption="Code">
+      <dxi-validation-rule type="required" message="Code is required">
+        <dxi-validation-rule type="pattern" message="Code is required">
+        </dxi-validation-rule>
+      </dxi-validation-rule>
+    </dxi-column>
+    <dxi-column dataField="DESCRIPTION" caption="Description">
+      <dxi-validation-rule type="required" message="Description is required">
+        <dxi-validation-rule type="pattern" message="Description is required">
+        </dxi-validation-rule>
+      </dxi-validation-rule>
+    </dxi-column>
+  </dx-data-grid>
+</div>
+<form-popup
+  [(visible)]="isItemProperty5PopupOpened"
+  (save)="onClickSaveItemProperty5()"
+  titleText="New {{ itemlabel }}"
+  [showApprove]="false"
+>
+  <app-item-property5-form></app-item-property5-form>
+</form-popup>
+
+<dx-popup
+  [(visible)]="isEditItemProperty5PopupOpened"
+  title="Edit Item property5"
+  height="40vh"
+  width="40vw"
+>
+  <app-item-property5-edit
+    [selectedData]="selected_data"
+    (formClosed)="handleClose()"
+  >
+  </app-item-property5-edit>
+</dx-popup>

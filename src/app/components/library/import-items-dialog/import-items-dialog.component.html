@@ -1,0 +1,126 @@
+<div class="view-wrapper list-page">
+  <dx-data-grid
+    noDataText="No data available"
+    [width]="'100%'"
+    [height]="'82vh'"
+    [loadPanel]="{
+      enabled: true,
+      text: 'Loading...',
+      showIndicator: true,
+      showPane: true,
+    }"
+    class="grid theme-dependent"
+    [dataSource]="datasource"
+    [allowColumnReordering]="true"
+    [allowColumnResizing]="true"
+    [columnAutoWidth]="true"
+    [columns]="columns"
+    [rowAlternationEnabled]="true"
+    rowAlternationInterval="2"
+    [showBorders]="true"
+    [showColumnLines]="true"
+    [showBorders]="true"
+    [wordWrapEnabled]="false"
+    [showColumnHeaders]="true"
+    [columnResizingMode]="'nextColumn'"
+    [filterRow]="{ visible: false }"
+    [headerFilter]="{ visible: false }"
+    [scrolling]="{ mode: 'virtual' }"
+    [selection]="{ mode: 'single' }"
+    focusStateEnabled="false"
+    (onCellPrepared)="onCellPrepared($event)"
+  >
+    <dxo-paging [pageSize]="10"></dxo-paging>
+    <dxo-pager
+      [visible]="true"
+      [allowedPageSizes]="allowedPageSizes"
+      [displayMode]="displayMode"
+      [showPageSizeSelector]="showPageSizeSelector"
+      [showInfo]="true"
+      [showNavigationButtons]="true"
+    ></dxo-pager>
+    <dxo-load-panel [showPane]="false"></dxo-load-panel>
+    <dxo-scrolling mode="virtual"></dxo-scrolling>
+    <dxo-filter-row
+      [visible]="isFilterRowVisible"
+      [applyFilter]="auto"
+    ></dxo-filter-row>
+    <dxo-header-filter [visible]="isFilterOpened">
+      <dxo-search [enabled]="true"></dxo-search>
+    </dxo-header-filter>
+    <dxo-filter-panel [visible]="isFilterOpened"></dxo-filter-panel>
+    <dxo-filter-builder [allowHierarchicalFields]="true"> </dxo-filter-builder>
+    <dxo-toolbar>
+      <dxi-item location="before">
+        <dx-tag-box
+          [items]="stores"
+          [showSelectionControls]="true"
+          displayExpr="DESCRIPTION"
+          applyValueMode="useButtons"
+          placeholder="Select Store"
+          valueExpr="ID"
+          stylingMode="filled"
+          [searchEnabled]="true"
+          [elementAttr]="{ class: 'dropdownClass' }"
+          (onValueChanged)="onStoreSelectionChanged($event)"
+        >
+        </dx-tag-box>
+      </dxi-item>
+
+      <dxi-item location="after">
+        <dx-select-box
+          placeholder="Select Template"
+          displayExpr="TEMPLATE_NAME"
+          [items]="itemTemplateData"
+          valueExpr="ID"
+          stylingMode="filled"
+          [searchEnabled]="true"
+          (onValueChanged)="onTemplateValueChanged($event)"
+          [elementAttr]="{ class: 'dropdownClass' }"
+        ></dx-select-box>
+      </dxi-item>
+
+      <dxi-item location="after"></dxi-item>
+      <dxi-item location="after">
+        <dx-button
+          icon="download"
+          stylingMode="text"
+          hint="Download Template"
+          [disabled]="!columns || columns.length === 0"
+          (onClick)="downloadTemplate()"
+        ></dx-button>
+      </dxi-item>
+      <dxi-item
+        location="after"
+        widget="dxButton"
+        [options]="importButtonOptions"
+      >
+      </dxi-item>
+
+      <dxi-item
+        location="after"
+        widget="dxButton"
+        [options]="saveButtonOptions"
+      >
+      </dxi-item>
+    </dxo-toolbar>
+    <dxo-scrolling mode="virtual"></dxo-scrolling>
+  </dx-data-grid>
+
+  <input
+    type="file"
+    id="fileInput"
+    style="display: none"
+    (change)="onFileChange($event)"
+  />
+
+  <dx-load-panel
+    [visible]="isSaving"
+    [shading]="true"
+    shadingColor="rgba(0, 0, 0, 0.3)"
+    message="Saving..."
+    [showIndicator]="true"
+    [showPane]="true"
+  >
+  </dx-load-panel>
+</div>

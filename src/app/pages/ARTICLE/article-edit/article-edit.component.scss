@@ -1,0 +1,401 @@
+:host ::ng-deep .dx-popup-wrapper .dx-overlay-content {
+  max-height: 90vh !important; /* allows the popup to expand higher */
+  height: auto !important; /* prevent fixed height */
+  overflow-y: hidden !important; /* remove scroll overflow */
+}
+
+:host ::ng-deep .dx-popup-content-scrollable,
+:host ::ng-deep .dx-popup-content,
+:host ::ng-deep .dx-overlay-content {
+  overflow-y: hidden !important;
+  overscroll-behavior: contain !important;
+}
+
+.form-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr 0.5fr; /* 2 columns for fields, 1 for image/grid */
+  gap: 9px 10px;
+  margin-bottom: 16px;
+  align-items: start;
+}
+
+.form-field {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+/* Image + Grid column on right */
+.image-grid-wrapper {
+  grid-column: 3;
+  grid-row: 1 / span 10; /* Adjust to fit height */
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.image-field {
+  position: relative;
+  height: 150px;
+}
+
+.image-upload-box {
+  width: 100%;
+  height: 100%;
+  border: 1px dashed #0073d8;
+  border-radius: 3px;
+  position: relative;
+  overflow: hidden;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: #e9f3fd;
+  // background-color: #f8f8f8;
+}
+
+.image-upload-box img {
+  // position: absolute;
+  position: static;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: auto;
+  // object-fit: cover;
+  transition: 0.2s ease-in-out;
+}
+
+/* Search Icon on Hover */
+.image-upload-box::after {
+  // content: "\1F50D"; /* unicode search icon */
+  font-size: 28px;
+  color: white;
+  background: rgba(0, 0, 0, 0.45);
+  padding: 6px 10px;
+  border-radius: 50%;
+  position: absolute;
+  top: 45%;
+  left: 45%;
+  opacity: 0;
+  transition: 0.2s ease-in-out;
+  pointer-events: none;
+}
+
+.image-upload-box:hover::after {
+  opacity: 1;
+}
+
+/* ------ Zoom Modal ------ */
+.image-preview-box {
+  position: relative;
+  width: 100%;
+  cursor: zoom-in;
+}
+
+.image-preview-box img {
+  width: 100%;
+  height: 100%;
+  border-radius: 6px;
+  object-fit: contain;
+}
+
+/* Delete Cross */
+.delete-btn {
+  position: absolute;
+  top: 6px;
+  left: 6px;
+  background: rgba(0, 0, 0, 0.5);
+  color: white;
+  font-size: 18px;
+  padding: 3px 8px;
+  border-radius: 50%;
+  cursor: pointer;
+  z-index: 10;
+}
+
+.delete-btn:hover {
+  background: rgba(0, 0, 0, 0.7);
+}
+
+/* Zoom Overlay */
+.zoom-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.82);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 9999;
+}
+
+.zoom-image {
+  max-width: 85%;
+  max-height: 85%;
+  border-radius: 8px;
+}
+
+/* Close button on zoom */
+.close-btn {
+  position: absolute;
+  top: 25px;
+  right: 25px;
+  font-size: 30px;
+  color: white;
+  background: rgba(0, 0, 0, 0.55);
+  padding: 5px 12px;
+  border-radius: 50%;
+  cursor: pointer;
+}
+/* Center the "Upload Image" text */
+.placeholder-box {
+  color: #888;
+  font-size: 14px;
+  text-align: center;
+  position: relative; /* allow normal flow */
+}
+
+/* Override DevExtreme spacing */
+::ng-deep .dx-field {
+  margin: 0 !important;
+  padding: 0 !important;
+}
+
+::ng-deep .dx-texteditor,
+::ng-deep .dx-selectbox {
+  margin: 0 !important;
+  padding: 0 !important;
+  height: 36px !important;
+}
+
+::ng-deep .dx-texteditor-input {
+  height: 100% !important;
+  line-height: 20px !important;
+  padding: 6px 10px !important;
+}
+
+/* Additional UI Layouts */
+.checkbox-container {
+  grid-column: span 2;
+  display: flex;
+  gap: 16px;
+  margin-top: 12px;
+  align-items: center;
+}
+
+.form-popup-buttons-container {
+  display: flex;
+  justify-content: flex-end;
+  padding: 10px;
+}
+
+.popup-footer {
+  display: flex;
+  gap: 10px;
+}
+
+.with-buttons {
+  display: flex;
+  align-items: stretch;
+  gap: 8px;
+}
+
+.with-buttons .dx-textbox {
+  flex-grow: 1;
+}
+
+.button-group {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding-top: 4px;
+}
+
+.popup-content {
+  //   padding: 16px;
+}
+::ng-deep .dx-datagrid-rowsview .dx-row > td {
+  border-right: 1px solid #ccc !important;
+}
+
+::ng-deep .dx-datagrid-headers .dx-header-row > td {
+  border-right: 1px solid #ccc !important;
+}
+
+::ng-deep .dx-datagrid-rowsview .dx-row > td:last-child,
+::ng-deep .dx-datagrid-headers .dx-header-row > td:last-child {
+  border-right: none !important;
+}
+
+.form-field-with-buttons {
+  display: flex;
+  align-items: flex-end;
+  gap: 8px;
+}
+
+.form-field-with-buttons dx-text-box {
+  flex: 1; /* Take all available space */
+}
+
+.component-with-buttons {
+  display: flex;
+  align-items: flex-end;
+  width: 100%;
+}
+
+.component-input-group {
+  display: flex;
+  align-items: flex-end;
+  width: 100%;
+  gap: 8px;
+}
+
+.component-input-group dx-text-box {
+  flex: 1;
+}
+
+.button-group-inline {
+  display: flex;
+  gap: 6px;
+}
+
+::ng-deep .dx-tabpanel .dx-tabpanel-tabs .dx-tabs {
+  height: 100%;
+  border: none;
+}
+
+::ng-deep .innert-tab .dx-tab.dx-tab-selected {
+  // background-color: none;
+  border: none;
+  color: #2979ff;
+}
+::ng-deep .innert-tab .dx-tabs-styling-mode-secondary .dx-tab {
+  /* border: 1px solid var(--border-color); */
+  border: none;
+  padding: 8px 16px;
+}
+
+.fixed-footer-buttons {
+  position: absolute; /* or fixed if you want it to stay on screen while scrolling */
+  bottom: 24px; /* distance from bottom */
+  right: 20px; /* distance from right */
+  display: flex;
+  gap: 10px; /* space between buttons */
+  z-index: 1000; /* ensure it is on top */
+}
+
+/* Optional: reduce padding at the bottom of tab-panel to make space */
+.innert-tab.custom-article-tabs {
+  padding-bottom: 80px; /* must be >= height of buttons + margin */
+}
+
+:host ::ng-deep .dx-popup-content-scrollable {
+  overflow-y: hidden !important;
+  max-height: none !important;
+}
+
+.preview-wrapper {
+  width: 200px; /* FIXED width */
+  height: 150px; /* FIXED height */
+  border: 1px solid #ddd;
+  padding: 4px;
+  border-radius: 6px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background: white;
+}
+
+.preview-img {
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain; /* IMPORTANT */
+  cursor: zoom-in;
+}
+.tooltip-content {
+  max-width: 300px;
+  white-space: normal;
+  font-size: 13px;
+}
+.tooltip-wrapper {
+  display: inline-block;
+  pointer-events: auto !important; /* Enables hover */
+  position: relative;
+  z-index: 1; /* Ensure wrapper stays above the form background */
+}
+
+.tooltip-wrapper * {
+  pointer-events: auto !important; /* Allow hover to reach wrapper */
+}
+/* ---------- TAB CONTAINER ---------- */
+::ng-deep .custom-article-tabs .dx-tabs {
+  background: transparent;
+  border-bottom: none;
+  padding: 4px 0;
+  gap: 6px;
+}
+
+/* ---------- INDIVIDUAL TAB ---------- */
+::ng-deep .custom-article-tabs .dx-tab {
+  border-radius: 6px;
+  background: #f3f6fb;
+  color: #333;
+  padding: 6px 14px;
+  margin-right: 6px;
+  border: none;
+  font-weight: 500;
+  transition: all 0.2s ease-in-out;
+}
+
+::ng-deep .fixed-footer {
+  padding: 14px 20px 10px;
+}
+
+/* Right aligned buttons */
+::ng-deep .popup-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+}
+
+::ng-deep .fixed-footer {
+  margin-top: 0px; /* reduce space above buttons */
+  padding-top: 6px; /* optional: tighter look */
+}
+
+/* Common button size */
+::ng-deep .popup-footer .dx-button {
+  min-width: 90px;
+  height: 36px;
+  font-size: 14px;
+  border-radius: 6px;
+}
+
+/* Cancel button (outlined) */
+::ng-deep .popup-footer .dx-button.dx-button-normal.dx-button-outlined {
+  background-color: #ffffff;
+  border-color: #cfcfcf;
+  color: #333333;
+}
+
+/* Save button (blue primary) */
+::ng-deep .popup-footer .dx-button.dx-button-default.dx-button-contained {
+  background-color: #0d6efd;
+  border-color: #0d6efd;
+  color: #ffffff;
+}
+
+.custom-form-tabs.dx-tabpanel {
+  border: none;
+}
+
+/* Tabs container */
+.custom-form-tabs .dx-tabs {
+  border-bottom: 1px solid #e0e0e0;
+}
+
+/* Tab item */
+.custom-form-tabs .dx-tab {
+  background: transparent;
+  border: none;
+  padding: 10px 18px;
+}

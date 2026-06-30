@@ -61,7 +61,7 @@ export class DataService {
   private apiUrl = environment.apiUrl;
 
   constructor(private http: HttpClient) {
-    // this.sesstion_Details();
+    this.sesstion_Details();
   }
   getLeavesByEmployee(empId: number) {
     throw new Error('Method not implemented.');
@@ -7112,12 +7112,36 @@ The result can be exported to HTML or Markdown.`;
 
   //==================synching data Api=======================
   get_sync_Data_api() {
-    return this.http.post(`${this.apiUrl}Synch/PendingStores`, {})
+    return this.http.post(`${this.apiUrl}Synch/PendingStores`, {});
   }
 
   //==================trial balance with branch wise for Advance  data Api=======================
   get_Trial_balance_api(item: any) {
+    return this.http.post(
+      `${this.apiUrl}AcReports/TrialBalance/StoreWise`,
+      item,
+    );
+  }
 
-    return this.http.post(`${this.apiUrl}AcReports/TrialBalance/StoreWise`, item)
+  //==================AR Manual Matching=======================
+  getARManualMatchingReceiptList(payload: any): Observable<any> {
+    return this.http.post(
+      `${this.apiUrl}ARManualMatching/receiptlist`,
+      payload,
+    );
+  }
+
+  getARManualMatchingInvoiceList(payload: any): Observable<any> {
+    return this.http.post(
+      `${this.apiUrl}ARManualMatching/invoicelist`,
+      payload,
+    );
+  }
+
+  processARManualMatching(payload: any): Observable<any> {
+    return this.http.post(
+      `${this.apiUrl}ARManualMatching/manualprocess`,
+      payload,
+    );
   }
 }

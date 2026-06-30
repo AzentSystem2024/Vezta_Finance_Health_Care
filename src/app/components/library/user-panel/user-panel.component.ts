@@ -21,7 +21,7 @@ export class UserPanelComponent {
   menuMode!: string;
 
   @Input()
-  user!: IUser | null;
+  user!: IUser | any;
 
   @ViewChild(UserMenuSectionComponent) userMenuSection: UserMenuSectionComponent;
   notificationCount: any
@@ -44,7 +44,7 @@ export class UserPanelComponent {
 
   ngOnInit() {
     timer(0, 60000).subscribe(() => {
-      this.Get_SyncData()
+      // this.Get_SyncData()
     })
   }
   handleDropDownButtonContentReady({ component }) {

@@ -7,7 +7,11 @@
       [showBorders]="true"
       class="grid theme-dependent mb-1"
       [rowAlternationEnabled]="true"
-      [selection]="{ mode: 'multiple', showCheckBoxesMode: 'always' }"
+      [selection]="{
+        mode: 'multiple',
+        showCheckBoxesMode: 'always',
+        allowSelectAll: false,
+      }"
       [focusedRowEnabled]="false"
       [allowColumnReordering]="true"
       [allowColumnResizing]="true"
@@ -30,10 +34,13 @@
         [visible]="showFilterRow"
         [applyFilter]="currentFilter"
       ></dxo-filter-row>
+
       <dxo-header-filter [visible]="isFilterOpened"
         ><dxo-search [enabled]="true"></dxo-search
       ></dxo-header-filter>
+
       <dxo-paging [enabled]="false"></dxo-paging>
+
       <dxo-pager
         [visible]="false"
         [showInfo]="true"
@@ -41,6 +48,7 @@
         [showNavigationButtons]="false"
         [showPageSizeSelector]="false"
       ></dxo-pager>
+
       <dxo-scrolling
         mode="virtual"
         rowRenderingMode="virtual"
@@ -84,6 +92,25 @@
           [options]="MatchingButtonOptions"
         ></dxi-item>
       </dxo-toolbar>
+
+      <dxo-summary>
+        <dxi-total-item
+          column="Amount"
+          summaryType="custom"
+          [displayFormat]="
+            'Selected: ' +
+            ((selectedReceiptAmountTotal | number: '1.2-2') || '0.00')
+          "
+        ></dxi-total-item>
+        <dxi-total-item
+          column="RejectedAmount"
+          summaryType="custom"
+          [displayFormat]="
+            'Selected: ' +
+            ((selectedReceiptRejectedTotal | number: '1.2-2') || '0.00')
+          "
+        ></dxi-total-item>
+      </dxo-summary>
     </dx-data-grid>
   </div>
 
@@ -120,11 +147,16 @@
       [columnAutoWidth]="true"
       noDataText=" "
       [height]="'40vh'"
+      (onSelectionChanged)="onInvoiceSelectionChanged($event)"
+      (onEditorPreparing)="onInvoiceEditorPreparing($event)"
+      (onSaved)="onInvoiceSaved($event)"
     >
       <dxo-selection
         mode="multiple"
         showCheckBoxesMode="always"
       ></dxo-selection>
+
+      <dxo-editing mode="cell" [allowUpdating]="true"></dxo-editing>
 
       <dxi-column
         *ngFor="let col of invoiceColumns"
@@ -132,16 +164,21 @@
         [caption]="col.caption"
         [dataType]="col.dataType"
         [format]="col.format"
+        [allowEditing]="col.allowEditing"
+        [validationRules]="col.validationRules"
       ></dxi-column>
 
       <dxo-filter-row
         [visible]="showFilterRow"
         [applyFilter]="currentFilter"
       ></dxo-filter-row>
+
       <dxo-header-filter [visible]="isFilterOpened"
         ><dxo-search [enabled]="true"></dxo-search
       ></dxo-header-filter>
+
       <dxo-paging [enabled]="false"></dxo-paging>
+
       <dxo-pager
         [visible]="false"
         [showInfo]="true"
@@ -149,6 +186,7 @@
         [showNavigationButtons]="false"
         [showPageSizeSelector]="false"
       ></dxo-pager>
+
       <dxo-scrolling
         mode="virtual"
         rowRenderingMode="virtual"
@@ -157,6 +195,7 @@
         preloadEnabled="true"
         useNative="false"
       ></dxo-scrolling>
+
       <dxo-toolbar>
         <dxi-item
           name="invoiceListHeader"
@@ -166,6 +205,33 @@
           <div class="grid-header">Invoices</div>
         </dxi-item>
       </dxo-toolbar>
+
+      <dxo-summary>
+        <dxi-total-item
+          column="Amount"
+          summaryType="custom"
+          [displayFormat]="
+            'Selected: ' +
+            ((selectedInvoiceAmountTotal | number: '1.2-2') || '0.00')
+          "
+        ></dxi-total-item>
+        <dxi-total-item
+          column="ReceivedAmount"
+          summaryType="custom"
+          [displayFormat]="
+            'Selected: ' +
+            ((selectedInvoiceReceivedTotal | number: '1.2-2') || '0.00')
+          "
+        ></dxi-total-item>
+        <dxi-total-item
+          column="RejectedAmount"
+          summaryType="custom"
+          [displayFormat]="
+            'Selected: ' +
+            ((selectedInvoiceRejectedTotal | number: '1.2-2') || '0.00')
+          "
+        ></dxi-total-item>
+      </dxo-summary>
     </dx-data-grid>
   </div>
 </div>

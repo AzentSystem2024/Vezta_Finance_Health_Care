@@ -4,6 +4,7 @@ import {
   CUSTOM_ELEMENTS_SCHEMA,
   NgModule,
   ViewChild,
+  AfterViewInit,
 } from '@angular/core';
 import { ReactiveFormsModule } from '@angular/forms';
 import { BrowserModule } from '@angular/platform-browser';
@@ -30,7 +31,7 @@ import notify from 'devextreme/ui/notify';
   templateUrl: './ar-manual-matching.component.html',
   styleUrls: ['./ar-manual-matching.component.scss'],
 })
-export class ARManualMatchingComponent {
+export class ARManualMatchingComponent implements AfterViewInit {
   @ViewChild('receiptGrid', {
     static: false,
   })
@@ -43,6 +44,13 @@ export class ARManualMatchingComponent {
   invoiceData: any[] = [];
   currentReferenceNo: string | null = null;
   isMatchingLoading: boolean = false;
+
+  selectedReceiptAmountTotal: number = 0;
+  selectedReceiptRejectedTotal: number = 0;
+  selectedInvoiceAmountTotal: number = 0;
+  selectedInvoiceReceivedTotal: number = 0;
+  selectedInvoiceRejectedTotal: number = 0;
+
   receiptColumns = [
     {
       dataField: 'ReceiptNo',
@@ -67,7 +75,7 @@ export class ARManualMatchingComponent {
     },
     {
       dataField: 'Amount',
-      caption: 'Amount',
+      caption: 'Received Amount',
       format: '#,##0.00',
     },
     {
@@ -80,37 +88,88 @@ export class ARManualMatchingComponent {
       caption: 'Rejected Reason',
     },
   ];
+
   invoiceColumns = [
     {
       dataField: 'InvoiceNo',
       caption: 'Invoice No',
+      allowEditing: false,
     },
     {
       dataField: 'Date',
       caption: 'Date',
       dataType: 'date',
+      allowEditing: false,
     },
     {
       dataField: 'Customer',
       caption: 'Customer',
+      allowEditing: false,
     },
     {
       dataField: 'ServiceCode',
       caption: 'Service Code',
+      allowEditing: false,
     },
     {
       dataField: 'Amount',
-      caption: 'Amount',
+      caption: 'Due Amount',
       format: '#,##0.00',
+      allowEditing: false,
     },
+    {
+      dataField: 'ReceivedAmount',
+      caption: 'Received Amount',
+      dataType: 'number',
+      format: '#,##0.00',
+      allowEditing: true,
+      validationRules: [
+        {
+          type: 'custom',
+          message: 'Received + Rejected cannot exceed Invoice Amount',
+          validationCallback: (options: any) => {
+            if (this.currentEditingColumn !== 'ReceivedAmount') return true;
+            const data = options.data || {};
+            const amount = Number(data.Amount) || 0;
+            const rejected = Number(data.RejectedAmount) || 0;
+            const received = Number(options.value) || 0;
+            return received + rejected <= amount;
+          },
+        },
+      ],
+    },
+    {
+      dataField: 'RejectedAmount',
+      caption: 'Rejected Amount',
+      dataType: 'number',
+      format: '#,##0.00',
+      allowEditing: true,
+      validationRules: [
+        {
+          type: 'custom',
+          message: 'Received + Rejected cannot exceed Invoice Amount',
+          validationCallback: (options: any) => {
+            if (this.currentEditingColumn !== 'RejectedAmount') return true;
+            const data = options.data || {};
+            const amount = Number(data.Amount) || 0;
+            const received = Number(data.ReceivedAmount) || 0;
+            const rejected = Number(options.value) || 0;
+            return received + rejected <= amount;
+          },
+        },
+      ],
+    },
+   
   ];
+
   isFilterOpened: boolean = false;
   currentFilter: string = 'auto';
   showFilterRow: boolean = false;
+  currentEditingColumn: string | null = null;
 
   // Manual Matching Button Options
   MatchingButtonOptions = {
-    text: 'Matching',
+    text: 'Process',
     icon: '',
     type: 'default',
     stylingMode: 'contained',
@@ -144,9 +203,13 @@ export class ARManualMatchingComponent {
     },
     onClick: () => this.toggleFilters(),
   };
-  
-  constructor(private dataService: DataService) {
-    this.fetchData();
+
+  constructor(private dataService: DataService) {}
+
+  ngAfterViewInit() {
+    setTimeout(() => {
+      this.fetchData();
+    });
   }
 
   toggleFilters() {
@@ -158,9 +221,18 @@ export class ARManualMatchingComponent {
     const payload = {
       CompanyID: this.dataService.selected_Company_id,
     };
+
     if (this.receiptGrid && this.receiptGrid.instance) {
+      this.receiptGrid.instance.clearFilter();
+      this.receiptGrid.instance.clearSelection();
       this.receiptGrid.instance.beginCustomLoading('Loading...');
     }
+
+    if (this.invoiceGrid && this.invoiceGrid.instance) {
+      this.invoiceGrid.instance.clearFilter();
+      this.invoiceGrid.instance.clearSelection();
+    }
+
     this.dataService.getARManualMatchingReceiptList(payload).subscribe({
       next: (res: any) => {
         if (this.receiptGrid && this.receiptGrid.instance) {
@@ -180,9 +252,11 @@ export class ARManualMatchingComponent {
       },
     });
     this.invoiceData = [];
+    this.currentReferenceNo = null;
   }
 
   onReceiptSelectionChanged(e: any) {
+    this.calculateReceiptTotals();
     const selectedReceipts = e.selectedRowsData;
     if (selectedReceipts.length > 0) {
       const firstRef = selectedReceipts[0].ReferenceNo;
@@ -219,7 +293,11 @@ export class ARManualMatchingComponent {
             this.invoiceGrid.instance.endCustomLoading();
           }
           if (res.flag === '1' && res.data) {
-            this.invoiceData = res.data;
+            this.invoiceData = res.data.map((item: any) => ({
+              ...item,
+              ReceivedAmount: null,
+              RejectedAmount: null,
+            }));
           } else {
             this.invoiceData = [];
           }
@@ -237,6 +315,50 @@ export class ARManualMatchingComponent {
     }
   }
 
+  onInvoiceSelectionChanged(e: any) {
+    this.calculateInvoiceTotals();
+  }
+
+  onInvoiceEditorPreparing(e: any) {
+    if (e.parentType === 'dataRow') {
+      this.currentEditingColumn = e.dataField;
+    }
+  }
+
+  onInvoiceSaved(e: any) {
+    this.calculateInvoiceTotals();
+  }
+
+  calculateReceiptTotals() {
+    if (!this.receiptGrid || !this.receiptGrid.instance) return;
+    const selectedRows = this.receiptGrid.instance.getSelectedRowsData();
+    this.selectedReceiptAmountTotal = selectedRows.reduce(
+      (sum: number, r: any) => sum + (Number(r.Amount) || 0),
+      0,
+    );
+    this.selectedReceiptRejectedTotal = selectedRows.reduce(
+      (sum: number, r: any) => sum + (Number(r.RejectedAmount) || 0),
+      0,
+    );
+  }
+
+  calculateInvoiceTotals() {
+    if (!this.invoiceGrid || !this.invoiceGrid.instance) return;
+    const selectedRows = this.invoiceGrid.instance.getSelectedRowsData();
+    this.selectedInvoiceAmountTotal = selectedRows.reduce(
+      (sum: number, r: any) => sum + (Number(r.Amount) || 0),
+      0,
+    );
+    this.selectedInvoiceReceivedTotal = selectedRows.reduce(
+      (sum: number, r: any) => sum + (Number(r.ReceivedAmount) || 0),
+      0,
+    );
+    this.selectedInvoiceRejectedTotal = selectedRows.reduce(
+      (sum: number, r: any) => sum + (Number(r.RejectedAmount) || 0),
+      0,
+    );
+  }
+
   performMatching() {
     const selectedReceipts = this.receiptGrid.instance.getSelectedRowsData();
     const selectedInvoices = this.invoiceGrid.instance.getSelectedRowsData();
@@ -248,15 +370,44 @@ export class ARManualMatchingComponent {
       );
       return;
     }
+
+    const totalReceiptAmount = selectedReceipts.reduce(
+      (sum: number, r: any) => sum + (Number(r.Amount) || 0),
+      0,
+    );
+    const totalReceiptRejected = selectedReceipts.reduce(
+      (sum: number, r: any) => sum + (Number(r.RejectedAmount) || 0),
+      0,
+    );
+    const totalInvoiceReceived = selectedInvoices.reduce(
+      (sum: number, i: any) => sum + (Number(i.ReceivedAmount) || 0),
+      0,
+    );
+    const totalInvoiceRejected = selectedInvoices.reduce(
+      (sum: number, i: any) => sum + (Number(i.RejectedAmount) || 0),
+      0,
+    );
+
+    if (totalReceiptAmount !== totalInvoiceReceived || totalReceiptRejected !== totalInvoiceRejected) {
+      notify(
+        'Receipt Received and Rejected totals must match Invoice Received and Rejected totals.',
+        'warning',
+        4000,
+      );
+      return;
+    }
     const payload = {
       ReceiptDetailID: selectedReceipts
         .map((r: any) => r.ReceiptDetailID)
         .filter((id: any) => id)
         .join(','),
-      InvoiceID: selectedInvoices
-        .map((i: any) => i.InvoiceID)
-        .filter((id: any) => id)
-        .join(','),
+      data: selectedInvoices
+        .filter((i: any) => i.InvoiceID)
+        .map((i: any) => ({
+          InvoiceID: i.InvoiceID,
+          RejectedAmount: Number(i.RejectedAmount) || 0,
+          ReceivedAmount: Number(i.ReceivedAmount) || 0,
+        })),
     };
 
     this.isMatchingLoading = true;
@@ -286,6 +437,9 @@ export class ARManualMatchingComponent {
         // Empty second grid
         this.invoiceData = [];
         this.currentReferenceNo = null;
+        this.selectedInvoiceAmountTotal = 0;
+        this.selectedInvoiceReceivedTotal = 0;
+        this.selectedInvoiceRejectedTotal = 0;
       },
       error: (err) => {
         this.isMatchingLoading = false;

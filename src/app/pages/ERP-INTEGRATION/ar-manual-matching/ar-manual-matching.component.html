@@ -98,7 +98,7 @@
           column="Amount"
           summaryType="custom"
           [displayFormat]="
-            'Selected: ' +
+            'Total: ' +
             ((selectedReceiptAmountTotal | number: '1.2-2') || '0.00')
           "
         ></dxi-total-item>
@@ -106,7 +106,7 @@
           column="RejectedAmount"
           summaryType="custom"
           [displayFormat]="
-            'Selected: ' +
+            'Total: ' +
             ((selectedReceiptRejectedTotal | number: '1.2-2') || '0.00')
           "
         ></dxi-total-item>
@@ -219,7 +219,7 @@
           column="ReceivedAmount"
           summaryType="custom"
           [displayFormat]="
-            'Selected: ' +
+            'Total: ' +
             ((selectedInvoiceReceivedTotal | number: '1.2-2') || '0.00')
           "
         ></dxi-total-item>
@@ -227,7 +227,7 @@
           column="RejectedAmount"
           summaryType="custom"
           [displayFormat]="
-            'Selected: ' +
+            'Total: ' +
             ((selectedInvoiceRejectedTotal | number: '1.2-2') || '0.00')
           "
         ></dxi-total-item>

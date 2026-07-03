@@ -159,7 +159,6 @@ export class ARManualMatchingComponent implements AfterViewInit {
         },
       ],
     },
-   
   ];
 
   isFilterOpened: boolean = false;
@@ -265,7 +264,10 @@ export class ARManualMatchingComponent implements AfterViewInit {
       );
       if (hasDifferentRef) {
         notify(
-          'Can only select rows with the same Reference No.',
+          {
+            message: 'Can only select rows with the same Reference No.',
+            position: 'top right',
+          },
           'warning',
           3000,
         );
@@ -364,7 +366,11 @@ export class ARManualMatchingComponent implements AfterViewInit {
     const selectedInvoices = this.invoiceGrid.instance.getSelectedRowsData();
     if (selectedReceipts.length === 0 || selectedInvoices.length === 0) {
       notify(
-        'Please select at least one receipt and one invoice to match.',
+        {
+          message:
+            'Please select at least one receipt and one invoice to match.',
+          position: 'top right',
+        },
         'warning',
         3000,
       );
@@ -388,9 +394,16 @@ export class ARManualMatchingComponent implements AfterViewInit {
       0,
     );
 
-    if (totalReceiptAmount !== totalInvoiceReceived || totalReceiptRejected !== totalInvoiceRejected) {
+    if (
+      totalReceiptAmount !== totalInvoiceReceived ||
+      totalReceiptRejected !== totalInvoiceRejected
+    ) {
       notify(
-        'Receipt Received and Rejected totals must match Invoice Received and Rejected totals.',
+        {
+          message:
+            'Receipt Received and Rejected totals must match Invoice Received and Rejected totals.',
+          position: 'top right',
+        },
         'warning',
         4000,
       );
@@ -416,11 +429,26 @@ export class ARManualMatchingComponent implements AfterViewInit {
         this.isMatchingLoading = false;
 
         if (res.flag === '1') {
-          notify(res.message || 'Matching successful', 'success', 3000);
+          notify(
+            {
+              message: res.message || 'Matching successful',
+              position: 'top right',
+            },
+            'success',
+            3000,
+          );
         } else if (res.message) {
-          notify(res.message, 'warning', 3000);
+          notify(
+            { message: res.message, position: 'top right' },
+            'warning',
+            3000,
+          );
         } else {
-          notify('Matching successful', 'success', 3000);
+          notify(
+            { message: 'Matching successful', position: 'top right' },
+            'success',
+            3000,
+          );
         }
 
         // Refresh first grid
@@ -443,7 +471,11 @@ export class ARManualMatchingComponent implements AfterViewInit {
       },
       error: (err) => {
         this.isMatchingLoading = false;
-        notify('Error during matching', 'error', 3000);
+        notify(
+          { message: 'Error during matching', position: 'top right' },
+          'error',
+          3000,
+        );
       },
     });
   }

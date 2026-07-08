@@ -1,4 +1,4 @@
 export const environment = {
   production: true,
-  apiUrl: 'http://veztafinanceapi.diligenzit.com/api/',
+  configFile: 'assets/config.prod.json',
 };

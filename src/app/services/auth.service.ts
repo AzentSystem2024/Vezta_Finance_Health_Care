@@ -3,7 +3,7 @@ import { CanActivate, Router, ActivatedRouteSnapshot } from '@angular/router';
 import { HttpClient } from '@angular/common/http';
 import { Observable, map } from 'rxjs';
 import { environment } from 'src/environments/environment';
-
+import { AppConfigService } from './app-config.service';
 export interface IUser {
   email: string;
   name?: string;
@@ -26,7 +26,7 @@ export const defaultUser: IUser = {
 
 @Injectable()
 export class AuthService {
-  private apiUrl = environment.apiUrl;
+  private apiUrl: string;
   public endpoint: string;
   private _user: IUser | null = defaultUser;
   private menuData: { [key: string]: any } | undefined;
@@ -49,7 +49,9 @@ export class AuthService {
   constructor(
     private http: HttpClient,
     private router: Router,
+    private appConfig: AppConfigService
   ) {
+    this.apiUrl = this.appConfig.apiUrl;
     this.endpoint = `${this.apiUrl}/users/login`;
 
     this.menuData = JSON.parse(localStorage.getItem('menuData') || '[]');

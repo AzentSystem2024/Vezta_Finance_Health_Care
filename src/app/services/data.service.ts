@@ -12,6 +12,7 @@ import { saveAs } from 'file-saver-es';
 import { exportDataGrid as exportDataGridToPdf } from 'devextreme/pdf_exporter';
 import { exportDataGrid as exportDataGridToXLSX } from 'devextreme/excel_exporter';
 import { environment } from 'src/environments/environment';
+import { AppConfigService } from './app-config.service';
 import { AnyARecord } from 'dns';
 import { DxDataGridComponent } from 'devextreme-angular';
 
@@ -58,9 +59,10 @@ export class DataService {
   private worksheetDataSubject = new BehaviorSubject<any>(null); // Initialize with null
   worksheetData$ = this.worksheetDataSubject.asObservable();
 
-  private apiUrl = environment.apiUrl;
+  private apiUrl: string;
 
-  constructor(private http: HttpClient) {
+  constructor(private http: HttpClient, private appConfig: AppConfigService) {
+    this.apiUrl = this.appConfig.apiUrl;
     this.sesstion_Details();
   }
   getLeavesByEmployee(empId: number) {

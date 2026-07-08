@@ -1,4 +1,4 @@
-import { NgModule } from '@angular/core';
+import { NgModule, APP_INITIALIZER } from '@angular/core';
 import { BrowserModule } from '@angular/platform-browser';
 import { DxSelectBoxModule, DxTemplateModule } from 'devextreme-angular';
 import { AppComponent } from './app.component';
@@ -15,6 +15,7 @@ import {
   ScreenService,
   AppInfoService,
   DataService,
+  AppConfigService,
 } from './services';
 import { UnauthenticatedContentModule } from './layouts/unauthenticated-content/unauthenticated-content';
 import { AppRoutingModule } from './app-routing.module';
@@ -403,6 +404,10 @@ import {
   BarcodePrintModule,
 } from './pages/barcode-print/barcode-print.component';
 import { TrialBalanceBranchWiseModule } from './pages/REPORT/trial-balance-branch-wise/trial-balance-branch-wise.component';
+
+export function initializeApp(appConfig: AppConfigService) {
+  return () => appConfig.loadConfig();
+}
 
 @NgModule({
   declarations: [AppComponent],
@@ -824,6 +829,13 @@ import { TrialBalanceBranchWiseModule } from './pages/REPORT/trial-balance-branc
     AppInfoService,
     ThemeService,
     DataService,
+    AppConfigService,
+    {
+      provide: APP_INITIALIZER,
+      useFactory: initializeApp,
+      deps: [AppConfigService],
+      multi: true
+    },
     { provide: LocationStrategy, useClass: HashLocationStrategy },
     { provide: RouteReuseStrategy, useClass: CustomReuseStrategy },
     { provide: HTTP_INTERCEPTORS, useClass: AuthInterceptor, multi: true },

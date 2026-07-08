@@ -53,7 +53,8 @@
               "file-saver",
               "html2canvas",
               "country-list-with-dial-code-and-flag",
-              "dompurify"
+              "dompurify",
+              "jsbarcode"
             ],
             "outputPath": "build",
             "index": "src/index.html",

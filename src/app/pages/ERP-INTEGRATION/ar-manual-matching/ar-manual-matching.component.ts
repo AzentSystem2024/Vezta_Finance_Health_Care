@@ -322,8 +322,14 @@ export class ARManualMatchingComponent implements AfterViewInit {
   }
 
   onInvoiceEditorPreparing(e: any) {
+    const selectedRows = this.invoiceGrid.instance.getSelectedRowsData();
     if (e.parentType === 'dataRow') {
       this.currentEditingColumn = e.dataField;
+      
+      const isSelected = selectedRows.some((row: any) => row.InvoiceID === e.row.data.InvoiceID);
+      if (!isSelected) {
+        e.editorOptions.disabled = true;
+      }
     }
   }
 
